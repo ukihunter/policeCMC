@@ -1,0 +1,34 @@
+
+Case Number
+
+Previous Date
+
+Information Book
+
+Register Number
+
+Date of Produce B Report
+
+Date of Produce Plant
+
+Opens
+
+Attorney General’s Advice (YES / NO)
+
+Production Register Number / Date of Hand Over to Court
+
+Government Analyst’s Report
+
+Receival Memorandum (YES / NO)
+
+Analyst’s Report (YES / NO)
+
+Suspect Name, Address, IC Number
+
+Witness Name, Address, IC Number
+
+Progress
+
+Results
+
+Next Date
