@@ -23,8 +23,14 @@ if ($result) {
     <h2><i class="fas fa-folder-open"></i> All Cases</h2>
     <div class="header-actions">
         <div class="filter-section">
-            <input type="text" id="searchInput" placeholder="Search by case number, register, information book..." onkeyup="filterCases()">
-            <div class="date-filters">
+            <!-- Row 1: Text Search -->
+            <div class="filter-row">
+                <input type="text" id="searchCaseNumber" placeholder="Search Case Number..." onkeyup="filterCases()">
+                <input type="text" id="searchRegister" placeholder="Search Register..." onkeyup="filterCases()">
+            </div>
+
+            <!-- Row 2: Date Filters -->
+            <div class="filter-row">
                 <div class="date-filter-group">
                     <label>Previous Date From:</label>
                     <input type="date" id="prevDateFrom" onchange="filterCases()">
@@ -33,8 +39,102 @@ if ($result) {
                     <label>To:</label>
                     <input type="date" id="prevDateTo" onchange="filterCases()">
                 </div>
+                <div class="date-filter-group">
+                    <label>B Report Date From:</label>
+                    <input type="date" id="bReportDateFrom" onchange="filterCases()">
+                </div>
+                <div class="date-filter-group">
+                    <label>To:</label>
+                    <input type="date" id="bReportDateTo" onchange="filterCases()">
+                </div>
+            </div>
+
+            <!-- Row 3: More Date Filters -->
+            <div class="filter-row">
+                <div class="date-filter-group">
+                    <label>Plant Date From:</label>
+                    <input type="date" id="plantDateFrom" onchange="filterCases()">
+                </div>
+                <div class="date-filter-group">
+                    <label>To:</label>
+                    <input type="date" id="plantDateTo" onchange="filterCases()">
+                </div>
+                <div class="date-filter-group">
+                    <label>Handover Date From:</label>
+                    <input type="date" id="handoverDateFrom" onchange="filterCases()">
+                </div>
+                <div class="date-filter-group">
+                    <label>To:</label>
+                    <input type="date" id="handoverDateTo" onchange="filterCases()">
+                </div>
+            </div>
+
+            <!-- Row 4: Next Date Filter -->
+            <div class="filter-row">
+                <div class="date-filter-group">
+                    <label>Next Date From:</label>
+                    <input type="date" id="nextDateFrom" onchange="filterCases()">
+                </div>
+                <div class="date-filter-group">
+                    <label>To:</label>
+                    <input type="date" id="nextDateTo" onchange="filterCases()">
+                </div>
+            </div>
+
+            <!-- Row 5: Dropdown Filters -->
+            <div class="filter-row">
+                <select id="filterInfoBook" onchange="filterCases()">
+                    <option value="">All Information Books</option>
+                    <option value="RIB">RIB</option>
+                    <option value="GCIB I">GCIB I</option>
+                    <option value="GCIB II">GCIB II</option>
+                    <option value="GCIB III">GCIB III</option>
+                    <option value="MOIB">MOIB</option>
+                    <option value="VIB">VIB</option>
+                    <option value="EIB">EIB</option>
+                    <option value="CPUIB">CPUIB</option>
+                    <option value="WCIB">WCIB</option>
+                    <option value="PIB">PIB</option>
+                    <option value="TIB">TIB</option>
+                    <option value="AIB">AIB</option>
+                    <option value="CIB I">CIB I</option>
+                    <option value="CIB II">CIB II</option>
+                    <option value="CIB III">CIB III</option>
+                    <option value="119 IB">119 IB</option>
+                    <option value="TR">TR</option>
+                    <option value="119 TR">119 TR</option>
+                    <option value="VPN TR">VPN TR</option>
+                    <option value="118 TR">118 TR</option>
+                </select>
+
+                <select id="filterRegister" onchange="filterCases()">
+                    <option value="">All Registers</option>
+                    <option value="GCR">GCR</option>
+                    <option value="MOR">MOR</option>
+                    <option value="VMOR">VMOR</option>
+                    <option value="MCR">MCR</option>
+                    <option value="TAR">TAR</option>
+                    <option value="TMOR">TMOR</option>
+                    <option value="AR">AR</option>
+                    <option value="SDR">SDR</option>
+                    <option value="MPR">MPR</option>
+                    <option value="LPR">LPR</option>
+                </select>
+
+                <select id="filterAttorneyAdvice" onchange="filterCases()">
+                    <option value="">All Attorney Advice</option>
+                    <option value="YES">YES</option>
+                    <option value="NO">NO</option>
+                </select>
+
+                <select id="filterAnalystReport" onchange="filterCases()">
+                    <option value="">All Analyst Reports</option>
+                    <option value="YES">YES</option>
+                    <option value="NO">NO</option>
+                </select>
+
                 <button class="btn-clear-filter" onclick="clearFilters()">
-                    <i class="fas fa-times"></i> Clear Filters
+                    <i class="fas fa-times"></i> Clear All Filters
                 </button>
             </div>
         </div>
@@ -54,16 +154,19 @@ if ($result) {
                 <tr>
                     <th>Case Number</th>
                     <th>Previous Date</th>
-                    <th>Register Number</th>
                     <th>Information Book</th>
+                    <th>Register</th>
+                    <th>B Report Date</th>
+                    <th>Plant Date</th>
                     <th>Opens</th>
+                    <th>Attorney General Advice</th>
+                    <th>PR & Handover Date</th>
+                    <th>Comment Analyst Report</th>
                     <th>Progress</th>
                     <th>Results</th>
-                    <th>Next Date</th>
                     <th>Suspects</th>
                     <th>Witnesses</th>
-                    <th>Status</th>
-                    <th>Created By</th>
+                    <th>Next Date</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -72,19 +175,35 @@ if ($result) {
                     <tr data-case-number="<?php echo htmlspecialchars($case['case_number']); ?>"
                         data-register="<?php echo htmlspecialchars($case['register_number']); ?>"
                         data-info-book="<?php echo htmlspecialchars($case['information_book']); ?>"
-                        data-prev-date="<?php echo $case['previous_date'] ?? ''; ?>">
+                        data-prev-date="<?php echo $case['previous_date'] ?? ''; ?>"
+                        data-b-report-date="<?php echo $case['date_produce_b_report'] ?? ''; ?>"
+                        data-plant-date="<?php echo $case['date_produce_plant'] ?? ''; ?>"
+                        data-handover-date="<?php echo $case['date_handover_court'] ?? ''; ?>"
+                        data-next-date="<?php echo $case['next_date'] ?? ''; ?>"
+                        data-attorney-advice="<?php echo $case['attorney_general_advice'] ?? ''; ?>"
+                        data-analyst-report="<?php echo $case['analyst_report'] ?? ''; ?>">
+
                         <td><strong><?php echo htmlspecialchars($case['case_number']); ?></strong></td>
                         <td><?php echo $case['previous_date'] ? date('d M Y', strtotime($case['previous_date'])) : '-'; ?></td>
+                        <td><?php echo htmlspecialchars($case['information_book']); ?></td>
                         <td><?php echo htmlspecialchars($case['register_number']); ?></td>
-                        <td>
-                            <div class="cell-content">
-                                <?php echo htmlspecialchars(substr($case['information_book'], 0, 60)) . (strlen($case['information_book']) > 60 ? '...' : ''); ?>
-                            </div>
-                        </td>
+                        <td><?php echo $case['date_produce_b_report'] ? date('d M Y', strtotime($case['date_produce_b_report'])) : '-'; ?></td>
+                        <td><?php echo $case['date_produce_plant'] ? date('d M Y', strtotime($case['date_produce_plant'])) : '-'; ?></td>
                         <td>
                             <div class="cell-content">
                                 <?php echo htmlspecialchars(substr($case['opens'] ?? '-', 0, 50)) . (strlen($case['opens'] ?? '') > 50 ? '...' : ''); ?>
                             </div>
+                        </td>
+                        <td>
+                            <span class="badge-yn <?php echo ($case['attorney_general_advice'] === 'YES') ? 'badge-yes' : 'badge-no'; ?>">
+                                <?php echo $case['attorney_general_advice'] ?? '-'; ?>
+                            </span>
+                        </td>
+                        <td><?php echo $case['date_handover_court'] ? date('d M Y', strtotime($case['date_handover_court'])) : '-'; ?></td>
+                        <td>
+                            <span class="badge-yn <?php echo ($case['analyst_report'] === 'YES') ? 'badge-yes' : 'badge-no'; ?>">
+                                <?php echo $case['analyst_report'] ?? '-'; ?>
+                            </span>
                         </td>
                         <td>
                             <div class="cell-content">
@@ -96,15 +215,12 @@ if ($result) {
                                 <?php echo htmlspecialchars(substr($case['results'] ?? '-', 0, 50)) . (strlen($case['results'] ?? '') > 50 ? '...' : ''); ?>
                             </div>
                         </td>
-                        <td>-</td>
                         <td>
                             <div class="cell-content">
                                 <?php
                                 $suspects = json_decode($case['suspect_data'] ?? '[]', true);
                                 if (!empty($suspects)) {
-                                    echo '<strong>' . count($suspects) . ' suspect(s)</strong><br>';
-                                    echo htmlspecialchars($suspects[0]['name'] ?? '');
-                                    if (count($suspects) > 1) echo ' +' . (count($suspects) - 1) . ' more';
+                                    echo '<strong>' . count($suspects) . '</strong>';
                                 } else {
                                     echo '-';
                                 }
@@ -116,29 +232,14 @@ if ($result) {
                                 <?php
                                 $witnesses = json_decode($case['witness_data'] ?? '[]', true);
                                 if (!empty($witnesses)) {
-                                    echo '<strong>' . count($witnesses) . ' witness(es)</strong><br>';
-                                    echo htmlspecialchars($witnesses[0]['name'] ?? '');
-                                    if (count($witnesses) > 1) echo ' +' . (count($witnesses) - 1) . ' more';
+                                    echo '<strong>' . count($witnesses) . '</strong>';
                                 } else {
                                     echo '-';
                                 }
                                 ?>
                             </div>
                         </td>
-                        <td>
-                            <?php
-                            $hasResults = !empty($case['results']);
-                            $statusClass = $hasResults ? 'status-completed' : 'status-pending';
-                            $statusText = $hasResults ? 'Completed' : 'In Progress';
-                            echo "<span class='status-badge $statusClass'>$statusText</span>";
-                            ?>
-                        </td>
-                        <td>
-                            <div class="user-info">
-                                <?php echo htmlspecialchars($case['created_by_name'] ?? 'Unknown'); ?><br>
-                                <small><?php echo date('d M Y', strtotime($case['created_at'])); ?></small>
-                            </div>
-                        </td>
+                        <td><?php echo $case['next_date'] ? date('d M Y', strtotime($case['next_date'])) : '-'; ?></td>
                         <td>
                             <div class="action-buttons">
                                 <button class="btn-view" onclick="viewCase(<?php echo $case['id']; ?>)" title="View Full Details">
@@ -172,9 +273,25 @@ if ($result) {
 <script>
     // Define functions immediately and attach to window
     window.filterCases = function() {
-        const searchInput = document.getElementById('searchInput').value.toUpperCase();
+        const searchCaseNumber = document.getElementById('searchCaseNumber').value.toUpperCase();
+        const searchRegister = document.getElementById('searchRegister').value.toUpperCase();
+        const filterInfoBook = document.getElementById('filterInfoBook').value;
+        const filterRegister = document.getElementById('filterRegister').value;
+        const filterAttorneyAdvice = document.getElementById('filterAttorneyAdvice').value;
+        const filterAnalystReport = document.getElementById('filterAnalystReport').value;
+
+        // Date filters
         const prevDateFrom = document.getElementById('prevDateFrom').value;
         const prevDateTo = document.getElementById('prevDateTo').value;
+        const bReportDateFrom = document.getElementById('bReportDateFrom').value;
+        const bReportDateTo = document.getElementById('bReportDateTo').value;
+        const plantDateFrom = document.getElementById('plantDateFrom').value;
+        const plantDateTo = document.getElementById('plantDateTo').value;
+        const handoverDateFrom = document.getElementById('handoverDateFrom').value;
+        const handoverDateTo = document.getElementById('handoverDateTo').value;
+        const nextDateFrom = document.getElementById('nextDateFrom').value;
+        const nextDateTo = document.getElementById('nextDateTo').value;
+
         const table = document.getElementById('casesTable');
         const tr = table.getElementsByTagName('tr');
 
@@ -184,36 +301,34 @@ if ($result) {
             const register = row.dataset.register || '';
             const infoBook = row.dataset.infoBook || '';
             const prevDate = row.dataset.prevDate || '';
+            const bReportDate = row.dataset.bReportDate || '';
+            const plantDate = row.dataset.plantDate || '';
+            const handoverDate = row.dataset.handoverDate || '';
+            const nextDate = row.dataset.nextDate || '';
+            const attorneyAdvice = row.dataset.attorneyAdvice || '';
+            const analystReport = row.dataset.analystReport || '';
 
-            // Text search
-            const searchText = (caseNumber + ' ' + register + ' ' + infoBook).toUpperCase();
-            const matchesSearch = searchInput === '' || searchText.includes(searchInput);
+            // Text search filters
+            const matchesCaseNumber = searchCaseNumber === '' || caseNumber.toUpperCase().includes(searchCaseNumber);
+            const matchesRegisterSearch = searchRegister === '' || register.toUpperCase().includes(searchRegister);
 
-            // Date range filter
-            let matchesDateRange = true;
-            if (prevDate && (prevDateFrom || prevDateTo)) {
-                const rowDate = new Date(prevDate);
+            // Dropdown filters
+            const matchesInfoBook = filterInfoBook === '' || infoBook === filterInfoBook;
+            const matchesRegister = filterRegister === '' || register === filterRegister;
+            const matchesAttorneyAdvice = filterAttorneyAdvice === '' || attorneyAdvice === filterAttorneyAdvice;
+            const matchesAnalystReport = filterAnalystReport === '' || analystReport === filterAnalystReport;
 
-                if (prevDateFrom && prevDateTo) {
-                    const dateFrom = new Date(prevDateFrom);
-                    const dateTo = new Date(prevDateTo);
-                    matchesDateRange = rowDate >= dateFrom && rowDate <= dateTo;
-                } else if (prevDateFrom) {
-                    const dateFrom = new Date(prevDateFrom);
-                    matchesDateRange = rowDate >= dateFrom;
-                } else if (prevDateTo) {
-                    const dateTo = new Date(prevDateTo);
-                    matchesDateRange = rowDate <= dateTo;
-                }
-            } else if (prevDateFrom || prevDateTo) {
-                // If row has no date but filter is set, hide it
-                if (prevDate === '') {
-                    matchesDateRange = false;
-                }
-            }
+            // Date range filters
+            const matchesPrevDate = checkDateRange(prevDate, prevDateFrom, prevDateTo);
+            const matchesBReportDate = checkDateRange(bReportDate, bReportDateFrom, bReportDateTo);
+            const matchesPlantDate = checkDateRange(plantDate, plantDateFrom, plantDateTo);
+            const matchesHandoverDate = checkDateRange(handoverDate, handoverDateFrom, handoverDateTo);
+            const matchesNextDate = checkDateRange(nextDate, nextDateFrom, nextDateTo);
 
-            // Show/hide row
-            if (matchesSearch && matchesDateRange) {
+            // Show/hide row based on all filters
+            if (matchesCaseNumber && matchesRegisterSearch && matchesInfoBook && matchesRegister &&
+                matchesAttorneyAdvice && matchesAnalystReport && matchesPrevDate && matchesBReportDate &&
+                matchesPlantDate && matchesHandoverDate && matchesNextDate) {
                 row.style.display = '';
             } else {
                 row.style.display = 'none';
@@ -221,10 +336,50 @@ if ($result) {
         }
     }
 
+    function checkDateRange(rowDate, dateFrom, dateTo) {
+        if (!dateFrom && !dateTo) {
+            return true; // No filter applied
+        }
+
+        if (!rowDate) {
+            // If row has no date but filter is set, hide it
+            return false;
+        }
+
+        const rowDateObj = new Date(rowDate);
+
+        if (dateFrom && dateTo) {
+            const dateFromObj = new Date(dateFrom);
+            const dateToObj = new Date(dateTo);
+            return rowDateObj >= dateFromObj && rowDateObj <= dateToObj;
+        } else if (dateFrom) {
+            const dateFromObj = new Date(dateFrom);
+            return rowDateObj >= dateFromObj;
+        } else if (dateTo) {
+            const dateToObj = new Date(dateTo);
+            return rowDateObj <= dateToObj;
+        }
+
+        return true;
+    }
+
     window.clearFilters = function() {
-        document.getElementById('searchInput').value = '';
+        document.getElementById('searchCaseNumber').value = '';
+        document.getElementById('searchRegister').value = '';
+        document.getElementById('filterInfoBook').value = '';
+        document.getElementById('filterRegister').value = '';
+        document.getElementById('filterAttorneyAdvice').value = '';
+        document.getElementById('filterAnalystReport').value = '';
         document.getElementById('prevDateFrom').value = '';
         document.getElementById('prevDateTo').value = '';
+        document.getElementById('bReportDateFrom').value = '';
+        document.getElementById('bReportDateTo').value = '';
+        document.getElementById('plantDateFrom').value = '';
+        document.getElementById('plantDateTo').value = '';
+        document.getElementById('handoverDateFrom').value = '';
+        document.getElementById('handoverDateTo').value = '';
+        document.getElementById('nextDateFrom').value = '';
+        document.getElementById('nextDateTo').value = '';
         window.filterCases();
     }
 

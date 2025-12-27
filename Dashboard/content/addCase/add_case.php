@@ -19,15 +19,57 @@
 
             <div class="form-group">
                 <label for="information_book">Information Book <span class="required">*</span></label>
-                <input type="text" id="information_book" name="information_book" required>
+                <select name="information_book" id="information_book" required>
+                    <option value="">-- Information Book --</option>
+
+                    <option value="RIB">RIB</option>
+                    <option value="GCIB_I">GCIB I</option>
+                    <option value="GCIB_II">GCIB II</option>
+                    <option value="GCIB_III">GCIB III</option>
+                    <option value="MOIB">MOIB</option>
+                    <option value="VIB">VIB</option>
+
+                    <option value="EIB">EIB</option>
+                    <option value="CPUIB">CPUIB</option>
+                    <option value="WCIB">WCIB</option>
+
+                    <option value="PIB">PIB</option>
+                    <option value="TIB">TIB</option>
+                    <option value="AIB">AIB</option>
+
+                    <option value="CIB_I">CIB I</option>
+                    <option value="CIB_II">CIB II</option>
+                    <option value="CIB_III">CIB III</option>
+                    <option value="119_IB">119 IB</option>
+
+                    <option value="TR">TR</option>
+                    <option value="119_TR">119 TR</option>
+                    <option value="VPN_TR">VPN TR</option>
+                    <option value="118_TR">118 TR</option>
+                </select>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label for="register_number">Register Number <span class="required">*</span></label>
-                    <input type="text" id="register_number" name="register_number" required>
+
+                    <select id="register_number" name="register_number" required>
+                        <option value="">-- Select Register Number --</option>
+
+                        <option value="GCR">GCR</option>
+                        <option value="MOR">MOR</option>
+                        <option value="VMOR">VMOR</option>
+                        <option value="MCR">MCR</option>
+                        <option value="TAR">TAR</option>
+                        <option value="TMOR">TMOR</option>
+                        <option value="AR">AR</option>
+                        <option value="SDR">SDR</option>
+                        <option value="MPR">MPR</option>
+                        <option value="LPR">LPR</option>
+                    </select>
                 </div>
             </div>
+
         </div>
 
         <div class="form-section">
