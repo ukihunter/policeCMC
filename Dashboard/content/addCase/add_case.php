@@ -87,11 +87,11 @@
                 <div class="form-group">
                     <label for="register_year">Register Year <span class="required">*</span></label>
                     <div style="position: relative;">
-                        <input type="text" id="register_year" name="register_year" required 
-                               placeholder="YYYY" 
-                               readonly
-                               style="cursor: pointer;"
-                               title="Click to select year">
+                        <input type="text" id="register_year" name="register_year" required
+                            placeholder="YYYY"
+                            readonly
+                            style="cursor: pointer;"
+                            title="Click to select year">
                         <div id="year-picker-dropdown" style="display: none; position: absolute; z-index: 1000; background: white; border: 2px solid #3b82f6; border-radius: 8px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-height: 300px; overflow-y: auto; width: 100%; margin-top: 5px;">
                             <div style="text-align: center; margin-bottom: 10px; font-weight: 600; color: #1e3a8a;">Select Year</div>
                             <div id="year-list" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;"></div>
@@ -221,7 +221,7 @@
         const yearDropdown = document.getElementById('year-picker-dropdown');
         const yearList = document.getElementById('year-list');
         const currentYear = new Date().getFullYear();
-        
+
         // Generate years from 2000 to 10000
         function populateYears() {
             yearList.innerHTML = '';
@@ -230,29 +230,29 @@
                 yearBtn.type = 'button';
                 yearBtn.textContent = year;
                 yearBtn.style.cssText = 'padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px; background: white; cursor: pointer; transition: all 0.2s; font-size: 14px;';
-                
+
                 yearBtn.addEventListener('mouseenter', function() {
                     this.style.background = '#3b82f6';
                     this.style.color = 'white';
                     this.style.borderColor = '#3b82f6';
                 });
-                
+
                 yearBtn.addEventListener('mouseleave', function() {
                     this.style.background = 'white';
                     this.style.color = 'black';
                     this.style.borderColor = '#e5e7eb';
                 });
-                
+
                 yearBtn.addEventListener('click', function() {
                     yearInput.value = year;
                     yearDropdown.style.display = 'none';
                     updateRegisterNumber();
                 });
-                
+
                 yearList.appendChild(yearBtn);
             }
         }
-        
+
         // Toggle dropdown
         yearInput.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -262,13 +262,15 @@
                 // Scroll to current year
                 const currentYearBtn = Array.from(yearList.children).find(btn => btn.textContent == currentYear);
                 if (currentYearBtn) {
-                    currentYearBtn.scrollIntoView({ block: 'center' });
+                    currentYearBtn.scrollIntoView({
+                        block: 'center'
+                    });
                 }
             } else {
                 yearDropdown.style.display = 'none';
             }
         });
-        
+
         // Close dropdown when clicking outside
         document.addEventListener('click', function(e) {
             if (!yearInput.contains(e.target) && !yearDropdown.contains(e.target)) {
@@ -326,15 +328,10 @@
                     </button>
                 </div>
                 <div class="dynamic-item-content">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Register Number</label>
-                            <input type="text" name="production_registers[]" placeholder="e.g., PR - 275/2022">
-                        </div>
-                        <div class="form-group">
-                            <label>Date</label>
-                            <input type="date" name="production_dates[]">
-                        </div>
+                    <div class="form-group">
+                        <label>Register Number</label>
+                        <input type="text" name="production_registers[]" placeholder="e.g., PR - 275/2022">
+                        <small style="color: #666; font-size: 12px; margin-top: 4px;">Each register on a separate entry</small>
                     </div>
                 </div>
             `;

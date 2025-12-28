@@ -24,22 +24,17 @@ $date_produce_plant = !empty($_POST['date_produce_plant']) ? $_POST['date_produc
 $opens = trim($_POST['opens'] ?? '');
 $attorney_general_advice = !empty($_POST['attorney_general_advice']) ? $_POST['attorney_general_advice'] : null;
 
-// Handle production registers (arrays)
+// Handle production registers (arrays) - store as plain text with line breaks
 $production_registers = $_POST['production_registers'] ?? [];
-$production_dates = $_POST['production_dates'] ?? [];
-$production_data = [];
+$production_register_lines = [];
 for ($i = 0; $i < count($production_registers); $i++) {
     if (!empty($production_registers[$i])) {
-        $production_data[] = [
-            'register' => $production_registers[$i],
-            'date' => $production_dates[$i] ?? ''
-        ];
+        $production_register_lines[] = trim($production_registers[$i]);
     }
 }
-$production_register_number = json_encode($production_data);
+$production_register_number = implode("\n", $production_register_lines);
 
 $date_handover_court = !empty($_POST['date_handover_court']) ? $_POST['date_handover_court'] : null;
-$government_analyst_report = trim($_POST['government_analyst_report'] ?? '');
 $receival_memorandum = !empty($_POST['receival_memorandum']) ? $_POST['receival_memorandum'] : null;
 $analyst_report = !empty($_POST['analyst_report']) ? $_POST['analyst_report'] : null;
 
@@ -53,7 +48,7 @@ for ($i = 0; $i < count($suspect_names); $i++) {
         $suspects_data[] = [
             'name' => $suspect_names[$i],
             'address' => $suspect_addresses[$i] ?? '',
-            'ic_number' => $suspect_ic_numbers[$i] ?? ''
+            'ic' => $suspect_ic_numbers[$i] ?? ''
         ];
     }
 }
@@ -69,7 +64,7 @@ for ($i = 0; $i < count($witness_names); $i++) {
         $witnesses_data[] = [
             'name' => $witness_names[$i],
             'address' => $witness_addresses[$i] ?? '',
-            'ic_number' => $witness_ic_numbers[$i] ?? ''
+            'ic' => $witness_ic_numbers[$i] ?? ''
         ];
     }
 }
@@ -110,7 +105,6 @@ $sql = "INSERT INTO cases (
     attorney_general_advice, 
     production_register_number, 
     date_handover_court, 
-    government_analyst_report, 
     receival_memorandum, 
     analyst_report, 
     suspect_data, 
@@ -120,7 +114,7 @@ $sql = "INSERT INTO cases (
     next_date, 
     created_by,
     updated_by
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 $stmt = $conn->prepare($sql);
 
@@ -131,7 +125,7 @@ if (!$stmt) {
 
 // Bind parameters
 $stmt->bind_param(
-    "ssssssssssssssssssii",
+    "sssssssssssssssssii",
     $case_number,
     $previous_date,
     $information_book,
@@ -142,7 +136,6 @@ $stmt->bind_param(
     $attorney_general_advice,
     $production_register_number,
     $date_handover_court,
-    $government_analyst_report,
     $receival_memorandum,
     $analyst_report,
     $suspect_data,

@@ -265,6 +265,9 @@ if ($result) {
                                 <button class="btn-edit" onclick="editCase(<?php echo $case['id']; ?>)" title="Edit Case">
                                     <i class="fas fa-edit"></i>
                                 </button>
+                                <button class="btn-print" onclick="printCase(<?php echo $case['id']; ?>)" title="Print Case">
+                                    <i class="fas fa-print"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -326,6 +329,9 @@ if ($result) {
         </div>
     </div>
 </div>
+
+<?php include 'edit_case_modal.php'; ?>
+<?php include 'print_case_modal.php'; ?>
 
 <script>
     // Load specific page
@@ -542,9 +548,16 @@ if ($result) {
                             <span>${caseData.date_handover_court ? new Date(caseData.date_handover_court).toLocaleDateString('en-GB') : '-'}</span>
                         </div>
                         <div class="detail-item">
-                            <label>Next Date:</label>
-                            <span>${caseData.next_date ? new Date(caseData.next_date).toLocaleDateString('en-GB') : '-'}</span>
+                            <label>Current Next Date:</label>
+                            <span><strong>${caseData.next_date ? new Date(caseData.next_date).toLocaleDateString('en-GB') : '-'}</strong></span>
                         </div>
+                    </div>
+                </div>
+
+                <div class="detail-section" id="nextDateHistory">
+                    <h3><i class="fas fa-history"></i> Next Date History</h3>
+                    <div class="loading-history">
+                        <i class="fas fa-spinner fa-spin"></i> Loading history...
                     </div>
                 </div>
 
@@ -582,10 +595,6 @@ if ($result) {
                         <div class="detail-item full-width">
                             <label>Production Register Number:</label>
                             <span>${(caseData.production_register_number || '-').replace(/\n/g, '<br>')}</span>
-                        </div>
-                        <div class="detail-item full-width">
-                            <label>Government Analyst Report:</label>
-                            <span>${(caseData.government_analyst_report || '-').replace(/\n/g, '<br>')}</span>
                         </div>
                     </div>
                 </div>
@@ -679,6 +688,62 @@ if ($result) {
         `;
 
         document.getElementById('modalBody').innerHTML = html;
+
+        // Load next date history
+        loadNextDateHistory(caseData.id);
+    }
+
+    function loadNextDateHistory(caseId) {
+        const historySection = document.getElementById('nextDateHistory');
+
+        fetch('content/allCases/get_next_date_history.php?case_id=' + caseId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.history.length > 0) {
+                    let historyHtml = '<h3><i class="fas fa-history"></i> Next Date History (' + data.count + ' entries)</h3>';
+                    historyHtml += '<div class="history-timeline">';
+
+                    data.history.forEach((entry, index) => {
+                        const entryDate = new Date(entry.next_date);
+                        const createdDate = new Date(entry.created_at);
+                        const isLatest = index === 0;
+
+                        historyHtml += `
+                            <div class="history-entry ${isLatest ? 'history-latest' : ''}">
+                                <div class="history-marker">
+                                    <i class="fas fa-circle"></i>
+                                </div>
+                                <div class="history-content">
+                                    <div class="history-header">
+                                        <strong class="history-date">${entryDate.toLocaleDateString('en-GB')}</strong>
+                                        ${isLatest ? '<span class="badge-current">Current</span>' : ''}
+                                    </div>
+                                    ${entry.notes ? `<div class="history-notes">${entry.notes}</div>` : ''}
+                                    <div class="history-meta">
+                                        <span><i class="fas fa-user"></i> ${entry.created_by_name || 'Unknown'}</span>
+                                        <span><i class="fas fa-clock"></i> ${createdDate.toLocaleString('en-GB')}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    historyHtml += '</div>';
+                    historySection.innerHTML = historyHtml;
+                } else {
+                    historySection.innerHTML = `
+                        <h3><i class="fas fa-history"></i> Next Date History</h3>
+                        <p class="no-data">No next date history available</p>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading history:', error);
+                historySection.innerHTML = `
+                    <h3><i class="fas fa-history"></i> Next Date History</h3>
+                    <p class="no-data" style="color: #dc3545;">Error loading history</p>
+                `;
+            });
     }
 
     window.closeModal = function() {
@@ -694,7 +759,114 @@ if ($result) {
     }
 
     window.editCase = function(caseId) {
-        // TODO: Implement edit case functionality
-        alert('Edit case #' + caseId);
+        const editModal = document.getElementById('editCaseModal');
+
+        if (!editModal) {
+            console.error('Edit modal not found');
+            return;
+        }
+
+        // Show modal with loading state
+        editModal.style.display = 'block';
+
+        // Fetch case details to populate the form
+        fetch('content/allCases/get_case_details.php?id=' + caseId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    populateEditForm(data.case);
+                } else {
+                    alert('Error loading case details: ' + (data.message || 'Unknown error'));
+                    editModal.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error loading case details');
+                editModal.style.display = 'none';
+            });
+    }
+
+    function populateEditForm(caseData) {
+        // Reset counters
+        editSuspectCounter = 0;
+        editWitnessCounter = 0;
+
+        // Clear existing suspects and witnesses
+        document.getElementById('edit_suspects_container').innerHTML = '';
+        document.getElementById('edit_witnesses_container').innerHTML = '';
+
+        // Populate all form fields
+        document.getElementById('edit_case_id').value = caseData.id;
+        document.getElementById('edit_case_number').value = caseData.case_number || '';
+        document.getElementById('edit_previous_date').value = caseData.previous_date || '';
+        document.getElementById('edit_register_number').value = caseData.register_number || '';
+        document.getElementById('edit_information_book').value = caseData.information_book || '';
+        document.getElementById('edit_date_produce_b_report').value = caseData.date_produce_b_report || '';
+        document.getElementById('edit_date_produce_plant').value = caseData.date_produce_plant || '';
+        document.getElementById('edit_date_handover_court').value = caseData.date_handover_court || '';
+        document.getElementById('edit_next_date').value = caseData.next_date || '';
+        document.getElementById('edit_next_date_notes').value = '';
+        document.getElementById('edit_opens').value = caseData.opens || '';
+        document.getElementById('edit_attorney_general_advice').value = caseData.attorney_general_advice || '';
+        document.getElementById('edit_receival_memorandum').value = caseData.receival_memorandum || '';
+        document.getElementById('edit_analyst_report').value = caseData.analyst_report || '';
+        document.getElementById('edit_production_register_number').value = caseData.production_register_number || '';
+        document.getElementById('edit_progress').value = caseData.progress || '';
+        document.getElementById('edit_results').value = caseData.results || '';
+
+        // Load suspects
+        const suspects = JSON.parse(caseData.suspect_data || '[]');
+        if (suspects.length > 0) {
+            suspects.forEach(suspect => {
+                addEditSuspect(suspect);
+            });
+        } else {
+            // Add one empty suspect field
+            addEditSuspect();
+        }
+
+        // Load witnesses
+        const witnesses = JSON.parse(caseData.witness_data || '[]');
+        if (witnesses.length > 0) {
+            witnesses.forEach(witness => {
+                addEditWitness(witness);
+            });
+        } else {
+            // Add one empty witness field
+            addEditWitness();
+        }
+    }
+
+    window.printCase = function(caseId) {
+        const printModal = document.getElementById('printCaseModal');
+
+        if (!printModal) {
+            console.error('Print modal not found');
+            return;
+        }
+
+        // Show modal
+        printModal.style.display = 'block';
+
+        // Fetch case details and history
+        Promise.all([
+                fetch('content/allCases/get_case_details.php?id=' + caseId).then(r => r.json()),
+                fetch('content/allCases/get_next_date_history.php?case_id=' + caseId).then(r => r.json())
+            ])
+            .then(([caseResponse, historyResponse]) => {
+                if (caseResponse.success) {
+                    currentPrintCaseData = caseResponse.case;
+                    currentPrintHistory = historyResponse.success ? historyResponse.history : [];
+                } else {
+                    alert('Error loading case details');
+                    printModal.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error loading case details');
+                printModal.style.display = 'none';
+            });
     }
 </script>
