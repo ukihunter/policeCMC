@@ -13,11 +13,13 @@ if (!isset($_SESSION["user_id"])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Police CMS - Dashboard</title>
+    <title>Police CMS</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/notifications.css">
     <link rel="stylesheet" href="content/addCase/css/add_case.css">
     <link rel="stylesheet" href="content/allCases/css/all_cases.css">
+    <script src="js/notifications.js"></script>
 </head>
 
 <body>
@@ -205,8 +207,10 @@ if (!isset($_SESSION["user_id"])) {
                             <table class="modern-table">
                                 <thead>
                                     <tr>
-                                        <th>Case #</th>
-                                        <th>Title</th>
+                                        <th>Case Number</th>
+                                        <th>Information Book</th>
+                                        <th>Register</th>
+                                        <th>Opens</th>
                                         <th>Status</th>
                                         <th>Time</th>
                                     </tr>
@@ -233,9 +237,11 @@ if (!isset($_SESSION["user_id"])) {
                             <table class="modern-table">
                                 <thead>
                                     <tr>
-                                        <th>Case #</th>
-                                        <th>Title</th>
-                                        <th>Update</th>
+                                        <th>Case Number</th>
+                                        <th>Information Book</th>
+                                        <th>Register</th>
+                                        <th>Opens</th>
+                                        <th>Status</th>
                                         <th>Updated</th>
                                     </tr>
                                 </thead>
@@ -319,15 +325,18 @@ if (!isset($_SESSION["user_id"])) {
             });
 
             // Show selected tab
-            document.getElementById(tabName).classList.add('active');
-
-            // Add active class to clicked nav link
-            if (typeof event !== 'undefined' && event && event.currentTarget) {
-                event.currentTarget.classList.add('active');
+            const selectedTab = document.getElementById(tabName);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
             } else {
-                // Find and activate the correct nav link when loading from hash
-                const navLink = document.querySelector(`[onclick*="switchTab('${tabName}')"]`);
-                if (navLink) navLink.classList.add('active');
+                console.error('Tab not found:', tabName);
+                return;
+            }
+
+            // Find and activate the correct nav link
+            const navLink = document.querySelector(`[onclick*="switchTab('${tabName}')"]`);
+            if (navLink) {
+                navLink.classList.add('active');
             }
 
             // Save current tab to localStorage
@@ -466,24 +475,102 @@ if (!isset($_SESSION["user_id"])) {
                         // Show helpful message in today's cases
                         const todayTbody = document.getElementById('today-cases-tbody');
                         if (todayTbody) {
-                            todayTbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #6b7280;"><i class="fas fa-inbox" style="font-size: 48px; display: block; margin-bottom: 10px; opacity: 0.3;"></i>No cases yet. Click "Add New Case" to get started.</td></tr>';
+                            todayTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: #6b7280;"><i class="fas fa-inbox" style="font-size: 48px; display: block; margin-bottom: 10px; opacity: 0.3;"></i>No cases yet. Click "Add New Case" to get started.</td></tr>';
                         }
 
                         // Show helpful message in recent updates
                         const recentTbody = document.getElementById('recent-updates-tbody');
                         if (recentTbody) {
-                            recentTbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #6b7280;"><i class="fas fa-history" style="font-size: 48px; display: block; margin-bottom: 10px; opacity: 0.3;"></i>No recent updates.</td></tr>';
+                            recentTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: #6b7280;"><i class="fas fa-history" style="font-size: 48px; display: block; margin-bottom: 10px; opacity: 0.3;"></i>No recent updates.</td></tr>';
                         }
                     }
+
+                    // Load today's cases and recent updates
+                    loadTodayCases();
+                    loadRecentUpdates();
                 })
                 .catch(error => {
                     console.error('Error loading dashboard stats:', error);
                     // Show error state
                     const todayTbody = document.getElementById('today-cases-tbody');
                     if (todayTbody) {
-                        todayTbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #ef4444;"><i class="fas fa-exclamation-triangle" style="font-size: 48px; display: block; margin-bottom: 10px; opacity: 0.5;"></i>Error loading dashboard data. Please refresh the page.</td></tr>';
+                        todayTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: #ef4444;"><i class="fas fa-exclamation-triangle" style="font-size: 48px; display: block; margin-bottom: 10px; opacity: 0.5;"></i>Error loading dashboard data. Please refresh the page.</td></tr>';
                     }
                 });
+        }
+
+        // Load today's cases
+        function loadTodayCases() {
+            fetch('content/get_today_cases.php')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('today-cases-tbody');
+                    const badge = document.querySelector('.summary-card:first-child .badge-count');
+
+                    if (badge) badge.textContent = data.count || 0;
+
+                    if (data.success && data.cases.length > 0) {
+                        tbody.innerHTML = data.cases.map(c => {
+                            const statusClass = c.case_status.toLowerCase();
+                            const time = new Date(c.created_at).toLocaleTimeString('en-GB', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                            const opens = (c.opens || '-').substring(0, 40) + ((c.opens && c.opens.length > 40) ? '...' : '');
+                            return `
+                                <tr onclick="switchTab('cases');" style="cursor: pointer;">
+                                    <td><strong>${c.case_number}</strong></td>
+                                    <td>${c.information_book}</td>
+                                    <td>${c.register_number}</td>
+                                    <td>${opens}</td>
+                                    <td><span class="badge-status badge-${statusClass}">${c.case_status}</span></td>
+                                    <td>${time}</td>
+                                </tr>
+                            `;
+                        }).join('');
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #6b7280;">No cases created today</td></tr>';
+                    }
+                })
+                .catch(error => console.error('Error loading today cases:', error));
+        }
+
+        // Load recent updates
+        function loadRecentUpdates() {
+            fetch('content/get_recent_updates.php')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('recent-updates-tbody');
+                    const badge = document.querySelector('.summary-card:last-child .badge-count');
+
+                    if (badge) badge.textContent = data.count || 0;
+
+                    if (data.success && data.cases.length > 0) {
+                        tbody.innerHTML = data.cases.map(c => {
+                            const statusClass = c.case_status.toLowerCase();
+                            const time = c.updated_at ? new Date(c.updated_at).toLocaleString('en-GB', {
+                                month: 'short',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            }) : '-';
+                            const opens = (c.opens || '-').substring(0, 40) + ((c.opens && c.opens.length > 40) ? '...' : '');
+                            return `
+                                <tr onclick="switchTab('cases');" style="cursor: pointer;">
+                                    <td><strong>${c.case_number}</strong></td>
+                                    <td>${c.information_book}</td>
+                                    <td>${c.register_number}</td>
+                                    <td>${opens}</td>
+                                    <td><span class="badge-status badge-${statusClass}">${c.case_status}</span></td>
+                                    <td>${time}</td>
+                                </tr>
+                            `;
+                        }).join('');
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #6b7280;">No recent updates</td></tr>';
+                    }
+                })
+                .catch(error => console.error('Error loading recent updates:', error));
         }
 
         // Load stats when page loads and restore active tab

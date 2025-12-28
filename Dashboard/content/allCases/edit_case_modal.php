@@ -146,6 +146,14 @@
                 <div class="form-section">
                     <h3><i class="fas fa-chart-line"></i> Progress & Results</h3>
                     <div class="form-grid">
+                        <div class="form-group">
+                            <label for="edit_case_status">Case Status <span style="color: red;">*</span></label>
+                            <select id="edit_case_status" name="case_status" required>
+                                <option value="Ongoing">Ongoing</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Closed">Closed</option>
+                            </select>
+                        </div>
                         <div class="form-group full-width">
                             <label for="edit_progress">Progress Notes</label>
                             <textarea id="edit_progress" name="progress" rows="4"></textarea>
@@ -487,7 +495,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Case updated successfully!');
+                    showSuccess('Case updated successfully!', 'Success');
                     closeEditModal();
 
                     // Update the row in the table without reloading
@@ -497,13 +505,18 @@
                     if (typeof window.filterCases === 'function') {
                         window.filterCases();
                     }
+
+                    // Reload dashboard stats to reflect any status changes
+                    if (typeof loadDashboardStats === 'function') {
+                        loadDashboardStats();
+                    }
                 } else {
-                    alert('Error: ' + (data.message || 'Failed to update case'));
+                    showError(data.message || 'Failed to update case', 'Update Failed');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error updating case. Please try again.');
+                showError('Error updating case. Please try again.', 'Error');
             })
             .finally(() => {
                 submitBtn.disabled = false;

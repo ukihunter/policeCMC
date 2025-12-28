@@ -285,6 +285,15 @@
             top: 0;
             width: 100%;
         }
+
+        /* Hide browser URL footer */
+        @page {
+            margin-bottom: 0;
+        }
+
+        body {
+            margin: 0;
+        }
     }
 </style>
 
@@ -573,7 +582,7 @@
         html += `
             <div style="margin-top: 50px; padding-top: 20px; border-top: 2px solid #000; text-align: center; font-size: 11px; color: #333;">
                 <p style="margin: 5px 0;">This document is an official record from the Police Case Management System</p>
-                <p style="margin: 5px 0;">Generated automatically - No signature required for system records</p>
+                <p style="margin: 5px 0;">Generated automatically</p>
             </div>
         </div>
     `;

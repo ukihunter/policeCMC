@@ -518,6 +518,10 @@ if ($result) {
                             <span><strong>${caseData.case_number}</strong></span>
                         </div>
                         <div class="detail-item">
+                            <label>Case Status:</label>
+                            <span class="badge-status badge-${(caseData.case_status || 'Ongoing').toLowerCase()}">${caseData.case_status || 'Ongoing'}</span>
+                        </div>
+                        <div class="detail-item">
                             <label>Previous Date:</label>
                             <span>${caseData.previous_date ? new Date(caseData.previous_date).toLocaleDateString('en-GB') : '-'}</span>
                         </div>
@@ -812,6 +816,7 @@ if ($result) {
         document.getElementById('edit_receival_memorandum').value = caseData.receival_memorandum || '';
         document.getElementById('edit_analyst_report').value = caseData.analyst_report || '';
         document.getElementById('edit_production_register_number').value = caseData.production_register_number || '';
+        document.getElementById('edit_case_status').value = caseData.case_status || 'Ongoing';
         document.getElementById('edit_progress').value = caseData.progress || '';
         document.getElementById('edit_results').value = caseData.results || '';
 

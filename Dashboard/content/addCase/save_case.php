@@ -72,6 +72,7 @@ $witness_data = json_encode($witnesses_data);
 
 $progress = trim($_POST['progress'] ?? '');
 $results = trim($_POST['results'] ?? '');
+$case_status = !empty($_POST['case_status']) ? $_POST['case_status'] : 'Ongoing';
 $next_date = null; // Always null
 $created_by = $_SESSION['user_id'];
 
@@ -111,10 +112,11 @@ $sql = "INSERT INTO cases (
     witness_data, 
     progress, 
     results, 
+    case_status,
     next_date, 
     created_by,
     updated_by
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 $stmt = $conn->prepare($sql);
 
@@ -125,7 +127,7 @@ if (!$stmt) {
 
 // Bind parameters
 $stmt->bind_param(
-    "sssssssssssssssssii",
+    "ssssssssssssssssssii",
     $case_number,
     $previous_date,
     $information_book,
@@ -142,6 +144,7 @@ $stmt->bind_param(
     $witness_data,
     $progress,
     $results,
+    $case_status,
     $next_date,
     $created_by,
     $created_by

@@ -192,6 +192,16 @@
         <div class="form-section">
             <div class="form-section">
                 <h3>Case Progress & Results</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="case_status">Case Status <span class="required">*</span></label>
+                        <select id="case_status" name="case_status" required>
+                            <option value="Ongoing">Ongoing</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label for="progress">Progress</label>
                     <textarea id="progress" name="progress" rows="4"></textarea>
@@ -523,6 +533,7 @@
             .then(data => {
                 if (data.success) {
                     messageContainer.innerHTML = '<div class="message success"><i class="fas fa-check-circle"></i> ' + data.message + '</div>';
+                    showSuccess(data.message, 'Case Added Successfully');
                     document.getElementById('addCaseForm').reset();
 
                     // Clear dynamic lists
@@ -544,12 +555,19 @@
                     setTimeout(() => {
                         messageContainer.innerHTML = '';
                     }, 5000);
+
+                    // Reload dashboard stats if on dashboard
+                    if (typeof loadDashboardStats === 'function') {
+                        loadDashboardStats();
+                    }
                 } else {
                     messageContainer.innerHTML = '<div class="message error"><i class="fas fa-exclamation-circle"></i> ' + data.message + '</div>';
+                    showError(data.message, 'Failed to Add Case');
                 }
             })
             .catch(error => {
                 messageContainer.innerHTML = '<div class="message error"><i class="fas fa-exclamation-circle"></i> An error occurred. Please try again.</div>';
+                showError('An error occurred while saving the case. Please try again.', 'Error');
                 console.error('Error:', error);
             });
     }

@@ -25,10 +25,8 @@ try {
         $total = $totalRow['total'];
     }
 
-    // Get pending cases (cases with future next_date and no results)
-    $pendingQuery = "SELECT COUNT(*) as pending FROM cases 
-                     WHERE (next_date IS NOT NULL AND next_date >= CURDATE()) 
-                     AND (results IS NULL OR results = '')";
+    // Get pending cases (by status)
+    $pendingQuery = "SELECT COUNT(*) as pending FROM cases WHERE case_status = 'Pending'";
     $pendingResult = $conn->query($pendingQuery);
     $pending = 0;
     if ($pendingResult) {
@@ -36,10 +34,8 @@ try {
         $pending = $pendingRow['pending'];
     }
 
-    // Get ongoing cases (cases with progress but no results)
-    $ongoingQuery = "SELECT COUNT(*) as ongoing FROM cases 
-                     WHERE (progress IS NOT NULL AND progress != '') 
-                     AND (results IS NULL OR results = '')";
+    // Get ongoing cases (by status)
+    $ongoingQuery = "SELECT COUNT(*) as ongoing FROM cases WHERE case_status = 'Ongoing'";
     $ongoingResult = $conn->query($ongoingQuery);
     $ongoing = 0;
     if ($ongoingResult) {
@@ -47,9 +43,8 @@ try {
         $ongoing = $ongoingRow['ongoing'];
     }
 
-    // Get closed cases (cases with results)
-    $closedQuery = "SELECT COUNT(*) as closed FROM cases 
-                    WHERE results IS NOT NULL AND results != ''";
+    // Get closed cases (by status)
+    $closedQuery = "SELECT COUNT(*) as closed FROM cases WHERE case_status = 'Closed'";
     $closedResult = $conn->query($closedQuery);
     $closed = 0;
     if ($closedResult) {

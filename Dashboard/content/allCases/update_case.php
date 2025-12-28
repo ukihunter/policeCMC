@@ -30,6 +30,7 @@ $analyst_report = $_POST['analyst_report'] ?? null;
 $production_register_number = $_POST['production_register_number'] ?? '';
 $progress = $_POST['progress'] ?? '';
 $results = $_POST['results'] ?? '';
+$case_status = !empty($_POST['case_status']) ? $_POST['case_status'] : 'Ongoing';
 
 // Get suspects and witnesses arrays
 $suspects = $_POST['suspects'] ?? [];
@@ -111,6 +112,7 @@ try {
             production_register_number = ?,
             progress = ?,
             results = ?,
+            case_status = ?,
             suspect_data = ?,
             witness_data = ?,
             updated_by = ?,
@@ -119,7 +121,7 @@ try {
 
     $stmt = $conn->prepare($sql);
     $stmt->bind_param(
-        "sssssssssssssssssii",
+        "ssssssssssssssssssii",
         $case_number,
         $previous_date,
         $information_book,
@@ -135,6 +137,7 @@ try {
         $production_register_number,
         $progress,
         $results,
+        $case_status,
         $suspect_json,
         $witness_json,
         $user_id,
@@ -179,6 +182,7 @@ try {
         'production_register_number' => $production_register_number,
         'progress' => $progress,
         'results' => $results,
+        'case_status' => $case_status,
         'suspect_data' => $suspect_json,
         'witness_data' => $witness_json
     ];
