@@ -51,11 +51,9 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label for="register_number">Register Number <span class="required">*</span></label>
-
-                    <select id="register_number" name="register_number" required>
-                        <option value="">-- Select Register Number --</option>
-
+                    <label for="register_type">Register Type <span class="required">*</span></label>
+                    <select id="register_type" name="register_type" required>
+                        <option value="">-- Select Register Type --</option>
                         <option value="GCR">GCR</option>
                         <option value="MOR">MOR</option>
                         <option value="VMOR">VMOR</option>
@@ -68,6 +66,44 @@
                         <option value="LPR">LPR</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label for="register_month">Register Month <span class="required">*</span></label>
+                    <select id="register_month" name="register_month" required>
+                        <option value="">-- Select Month --</option>
+                        <option value="01">January</option>
+                        <option value="02">February</option>
+                        <option value="03">March</option>
+                        <option value="04">April</option>
+                        <option value="05">May</option>
+                        <option value="06">June</option>
+                        <option value="07">July</option>
+                        <option value="08">August</option>
+                        <option value="09">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="register_year">Register Year <span class="required">*</span></label>
+                    <div style="position: relative;">
+                        <input type="text" id="register_year" name="register_year" required 
+                               placeholder="YYYY" 
+                               readonly
+                               style="cursor: pointer;"
+                               title="Click to select year">
+                        <div id="year-picker-dropdown" style="display: none; position: absolute; z-index: 1000; background: white; border: 2px solid #3b82f6; border-radius: 8px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-height: 300px; overflow-y: auto; width: 100%; margin-top: 5px;">
+                            <div style="text-align: center; margin-bottom: 10px; font-weight: 600; color: #1e3a8a;">Select Year</div>
+                            <div id="year-list" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;"></div>
+                        </div>
+                    </div>
+                    <small style="color: #6b7280; font-size: 12px; margin-top: 4px; display: block;">Click to select year</small>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Full Register Number</label>
+                <input type="text" id="register_number_display" readonly style="background-color: #f3f4f6; cursor: not-allowed;" placeholder="Will be generated from selections above">
+                <input type="hidden" id="register_number" name="register_number">
             </div>
 
         </div>
@@ -179,6 +215,90 @@
 </div>
 
 <script>
+    // Year picker functionality
+    (function() {
+        const yearInput = document.getElementById('register_year');
+        const yearDropdown = document.getElementById('year-picker-dropdown');
+        const yearList = document.getElementById('year-list');
+        const currentYear = new Date().getFullYear();
+        
+        // Generate years from 2000 to 10000
+        function populateYears() {
+            yearList.innerHTML = '';
+            for (let year = 10000; year >= 2000; year--) {
+                const yearBtn = document.createElement('button');
+                yearBtn.type = 'button';
+                yearBtn.textContent = year;
+                yearBtn.style.cssText = 'padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px; background: white; cursor: pointer; transition: all 0.2s; font-size: 14px;';
+                
+                yearBtn.addEventListener('mouseenter', function() {
+                    this.style.background = '#3b82f6';
+                    this.style.color = 'white';
+                    this.style.borderColor = '#3b82f6';
+                });
+                
+                yearBtn.addEventListener('mouseleave', function() {
+                    this.style.background = 'white';
+                    this.style.color = 'black';
+                    this.style.borderColor = '#e5e7eb';
+                });
+                
+                yearBtn.addEventListener('click', function() {
+                    yearInput.value = year;
+                    yearDropdown.style.display = 'none';
+                    updateRegisterNumber();
+                });
+                
+                yearList.appendChild(yearBtn);
+            }
+        }
+        
+        // Toggle dropdown
+        yearInput.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (yearDropdown.style.display === 'none') {
+                populateYears();
+                yearDropdown.style.display = 'block';
+                // Scroll to current year
+                const currentYearBtn = Array.from(yearList.children).find(btn => btn.textContent == currentYear);
+                if (currentYearBtn) {
+                    currentYearBtn.scrollIntoView({ block: 'center' });
+                }
+            } else {
+                yearDropdown.style.display = 'none';
+            }
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!yearInput.contains(e.target) && !yearDropdown.contains(e.target)) {
+                yearDropdown.style.display = 'none';
+            }
+        });
+    })();
+
+    // Update register number display
+    function updateRegisterNumber() {
+        const type = document.getElementById('register_type').value;
+        const month = document.getElementById('register_month').value;
+        const year = document.getElementById('register_year').value;
+        const display = document.getElementById('register_number_display');
+        const hidden = document.getElementById('register_number');
+
+        if (type && month && year && year.length === 4) {
+            const fullNumber = `${type} ${month}/${year}`;
+            display.value = fullNumber;
+            hidden.value = fullNumber;
+        } else {
+            display.value = '';
+            hidden.value = '';
+        }
+    }
+
+    document.getElementById('register_type').addEventListener('change', updateRegisterNumber);
+    document.getElementById('register_month').addEventListener('change', updateRegisterNumber);
+    document.getElementById('register_year').addEventListener('input', updateRegisterNumber);
+
     // Production Register Management
     let productionCount = 0;
 
@@ -351,13 +471,45 @@
         }
     });
 
-    // Attach event listeners
-    document.getElementById('addProductionBtn').addEventListener('click', addProduction);
-    document.getElementById('addSuspectBtn').addEventListener('click', addSuspect);
-    document.getElementById('addWitnessBtn').addEventListener('click', addWitness);
-    document.getElementById('resetFormBtn').addEventListener('click', resetForm);
+    // Wait for DOM to be fully loaded before attaching event listeners
+    function initializeForm() {
+        const addProductionBtn = document.getElementById('addProductionBtn');
+        const addSuspectBtn = document.getElementById('addSuspectBtn');
+        const addWitnessBtn = document.getElementById('addWitnessBtn');
+        const resetFormBtn = document.getElementById('resetFormBtn');
+        const addCaseForm = document.getElementById('addCaseForm');
 
-    document.getElementById('addCaseForm').addEventListener('submit', function(e) {
+        if (addProductionBtn) {
+            // Remove any existing listeners by cloning and replacing
+            const newProductionBtn = addProductionBtn.cloneNode(true);
+            addProductionBtn.parentNode.replaceChild(newProductionBtn, addProductionBtn);
+            newProductionBtn.addEventListener('click', addProduction);
+        }
+        if (addSuspectBtn) {
+            const newSuspectBtn = addSuspectBtn.cloneNode(true);
+            addSuspectBtn.parentNode.replaceChild(newSuspectBtn, addSuspectBtn);
+            newSuspectBtn.addEventListener('click', addSuspect);
+        }
+        if (addWitnessBtn) {
+            const newWitnessBtn = addWitnessBtn.cloneNode(true);
+            addWitnessBtn.parentNode.replaceChild(newWitnessBtn, addWitnessBtn);
+            newWitnessBtn.addEventListener('click', addWitness);
+        }
+        if (resetFormBtn) {
+            const newResetBtn = resetFormBtn.cloneNode(true);
+            resetFormBtn.parentNode.replaceChild(newResetBtn, resetFormBtn);
+            newResetBtn.addEventListener('click', resetForm);
+        }
+        if (addCaseForm) {
+            addCaseForm.removeEventListener('submit', handleFormSubmit);
+            addCaseForm.addEventListener('submit', handleFormSubmit);
+        }
+    }
+
+    // Initialize immediately since content is loaded dynamically
+    initializeForm();
+
+    function handleFormSubmit(e) {
         e.preventDefault();
 
         const formData = new FormData(this);
@@ -384,6 +536,10 @@
                     suspectCount = 0;
                     witnessCount = 0;
 
+                    // Clear register number display
+                    document.getElementById('register_number_display').value = '';
+                    document.getElementById('register_number').value = '';
+
                     // Scroll to top to show message
                     document.querySelector('.add-case-container').scrollTop = 0;
 
@@ -399,7 +555,7 @@
                 messageContainer.innerHTML = '<div class="message error"><i class="fas fa-exclamation-circle"></i> An error occurred. Please try again.</div>';
                 console.error('Error:', error);
             });
-    });
+    }
 
     function resetForm() {
         if (confirm('Are you sure you want to reset the form? All entered data will be lost.')) {
@@ -408,6 +564,8 @@
             document.getElementById('production-list').innerHTML = '';
             document.getElementById('suspects-list').innerHTML = '';
             document.getElementById('witnesses-list').innerHTML = '';
+            document.getElementById('register_number_display').value = '';
+            document.getElementById('register_number').value = '';
             productionCount = 0;
             suspectCount = 0;
             witnessCount = 0;

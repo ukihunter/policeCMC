@@ -263,8 +263,7 @@ if (!isset($_SESSION["user_id"])) {
 
             <!-- Add New Case Tab -->
             <div id="add-case" class="tab-content">
-                <h2><i class="fas fa-plus-circle"></i> Add New Case</h2>
-                <p>Create a new case by filling out the form below.</p>
+                <!-- Content will be loaded dynamically -->
             </div>
 
             <!-- Search Tab -->
@@ -323,7 +322,19 @@ if (!isset($_SESSION["user_id"])) {
             document.getElementById(tabName).classList.add('active');
 
             // Add active class to clicked nav link
-            event.currentTarget.classList.add('active');
+            if (typeof event !== 'undefined' && event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            } else {
+                // Find and activate the correct nav link when loading from hash
+                const navLink = document.querySelector(`[onclick*="switchTab('${tabName}')"]`);
+                if (navLink) navLink.classList.add('active');
+            }
+
+            // Save current tab to localStorage
+            localStorage.setItem('activeTab', tabName);
+
+            // Update URL hash without scrolling
+            history.replaceState(null, null, '#' + tabName);
 
             // Load content dynamically for specific tabs
             if (tabName === 'cases') {
@@ -335,6 +346,15 @@ if (!isset($_SESSION["user_id"])) {
 
         function loadCasesContent() {
             const casesContent = document.getElementById('cases-content');
+
+            // Check if content is already loaded with actual data
+            const hasTable = casesContent.querySelector('table.modern-table');
+            const hasValidContent = casesContent.innerHTML.length > 200; // More than just loading message
+
+            if (hasTable && hasValidContent) {
+                console.log('Cases already loaded, skipping reload');
+                return;
+            }
 
             // Show loading state
             casesContent.innerHTML = '<h2><i class="fas fa-folder-open"></i> All Cases</h2><p>Loading cases...</p>';
@@ -366,8 +386,20 @@ if (!isset($_SESSION["user_id"])) {
         function loadAddCaseContent() {
             const addCaseContent = document.getElementById('add-case');
 
+            // Check if content is already loaded and valid (has actual form content)
+            const hasForm = addCaseContent.querySelector('#addCaseForm');
+            const hasValidContent = addCaseContent.innerHTML.includes('addCaseForm');
+
+            if (hasForm && hasValidContent) {
+                console.log('Form already loaded, skipping reload');
+                return;
+            }
+
             // Show loading state
             addCaseContent.innerHTML = '<h2><i class="fas fa-plus-circle"></i> Add New Case</h2><p>Loading form...</p>';
+
+            // Remove old dynamic scripts to prevent conflicts
+            document.querySelectorAll('script[data-dynamic-script^="add-case-"]').forEach(s => s.remove());
 
             // Use fetch to load the content
             fetch('content/addCase/add_case.php')
@@ -377,11 +409,12 @@ if (!isset($_SESSION["user_id"])) {
 
                     // Execute scripts in the loaded content
                     const scripts = addCaseContent.querySelectorAll('script');
-                    scripts.forEach(script => {
+                    scripts.forEach((script, index) => {
                         const newScript = document.createElement('script');
                         newScript.textContent = script.textContent;
+                        // Add unique identifier to prevent conflicts
+                        newScript.setAttribute('data-dynamic-script', 'add-case-' + index);
                         document.body.appendChild(newScript);
-                        document.body.removeChild(newScript);
                     });
                 })
                 .catch(error => {
@@ -396,38 +429,87 @@ if (!isset($_SESSION["user_id"])) {
                 .then(response => response.json())
                 .then(data => {
                     // Update stat cards
-                    document.getElementById('total-cases').textContent = data.total || 0;
+                    const totalCases = data.total || 0;
+                    document.getElementById('total-cases').textContent = totalCases;
                     document.getElementById('pending-cases').textContent = data.pending || 0;
                     document.getElementById('ongoing-cases').textContent = data.ongoing || 0;
                     document.getElementById('closed-cases').textContent = data.closed || 0;
 
-                    // Calculate percentages
-                    const total = data.total || 1; // Avoid division by zero
-                    const pendingPercent = Math.round((data.pending / total) * 100);
-                    const ongoingPercent = Math.round((data.ongoing / total) * 100);
-                    const closedPercent = Math.round((data.closed / total) * 100);
+                    // Calculate percentages (avoid division by zero)
+                    if (totalCases > 0) {
+                        const pendingPercent = Math.round((data.pending / totalCases) * 100);
+                        const ongoingPercent = Math.round((data.ongoing / totalCases) * 100);
+                        const closedPercent = Math.round((data.closed / totalCases) * 100);
 
-                    // Update progress bar
-                    document.getElementById('pending-bar').style.width = pendingPercent + '%';
-                    document.getElementById('pending-bar').setAttribute('data-tooltip', `Pending: ${pendingPercent}%`);
-                    document.getElementById('ongoing-bar').style.width = ongoingPercent + '%';
-                    document.getElementById('ongoing-bar').setAttribute('data-tooltip', `Ongoing: ${ongoingPercent}%`);
-                    document.getElementById('closed-bar').style.width = closedPercent + '%';
-                    document.getElementById('closed-bar').setAttribute('data-tooltip', `Closed: ${closedPercent}%`);
+                        // Update progress bar
+                        document.getElementById('pending-bar').style.width = pendingPercent + '%';
+                        document.getElementById('pending-bar').setAttribute('data-tooltip', `Pending: ${pendingPercent}%`);
+                        document.getElementById('ongoing-bar').style.width = ongoingPercent + '%';
+                        document.getElementById('ongoing-bar').setAttribute('data-tooltip', `Ongoing: ${ongoingPercent}%`);
+                        document.getElementById('closed-bar').style.width = closedPercent + '%';
+                        document.getElementById('closed-bar').setAttribute('data-tooltip', `Closed: ${closedPercent}%`);
 
-                    // Update legend percentages
-                    document.getElementById('pending-percent').textContent = pendingPercent;
-                    document.getElementById('ongoing-percent').textContent = ongoingPercent;
-                    document.getElementById('closed-percent').textContent = closedPercent;
+                        // Update legend percentages
+                        document.getElementById('pending-percent').textContent = pendingPercent;
+                        document.getElementById('ongoing-percent').textContent = ongoingPercent;
+                        document.getElementById('closed-percent').textContent = closedPercent;
+                    } else {
+                        // Show empty state when no cases exist
+                        document.getElementById('pending-bar').style.width = '0%';
+                        document.getElementById('ongoing-bar').style.width = '0%';
+                        document.getElementById('closed-bar').style.width = '0%';
+
+                        document.getElementById('pending-percent').textContent = '0';
+                        document.getElementById('ongoing-percent').textContent = '0';
+                        document.getElementById('closed-percent').textContent = '0';
+
+                        // Show helpful message in today's cases
+                        const todayTbody = document.getElementById('today-cases-tbody');
+                        if (todayTbody) {
+                            todayTbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #6b7280;"><i class="fas fa-inbox" style="font-size: 48px; display: block; margin-bottom: 10px; opacity: 0.3;"></i>No cases yet. Click "Add New Case" to get started.</td></tr>';
+                        }
+
+                        // Show helpful message in recent updates
+                        const recentTbody = document.getElementById('recent-updates-tbody');
+                        if (recentTbody) {
+                            recentTbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #6b7280;"><i class="fas fa-history" style="font-size: 48px; display: block; margin-bottom: 10px; opacity: 0.3;"></i>No recent updates.</td></tr>';
+                        }
+                    }
                 })
                 .catch(error => {
                     console.error('Error loading dashboard stats:', error);
+                    // Show error state
+                    const todayTbody = document.getElementById('today-cases-tbody');
+                    if (todayTbody) {
+                        todayTbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #ef4444;"><i class="fas fa-exclamation-triangle" style="font-size: 48px; display: block; margin-bottom: 10px; opacity: 0.5;"></i>Error loading dashboard data. Please refresh the page.</td></tr>';
+                    }
                 });
         }
 
-        // Load stats when page loads
+        // Load stats when page loads and restore active tab
         document.addEventListener('DOMContentLoaded', function() {
             loadDashboardStats();
+
+            // Restore active tab from localStorage or URL hash after a brief delay
+            setTimeout(function() {
+                const hash = window.location.hash.substring(1);
+                const savedTab = localStorage.getItem('activeTab');
+                const activeTab = hash || savedTab || 'dashboard';
+
+                console.log('Restoring tab:', activeTab);
+
+                if (activeTab && activeTab !== 'dashboard') {
+                    switchTab(activeTab);
+                }
+            }, 100); // Small delay to ensure DOM is fully ready
+        });
+
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', function() {
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                switchTab(hash);
+            }
         });
     </script>
 

@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS cases (
     case_number VARCHAR(100) NOT NULL UNIQUE,
     previous_date DATE NOT NULL,
     information_book TEXT NOT NULL,
-    register_number VARCHAR(100) NOT NULL,
+    register_number VARCHAR(50) NOT NULL COMMENT 'Format: TYPE MM/YYYY (e.g., GCR 08/2022)',
     date_produce_b_report DATE,
     date_produce_plant DATE,
     opens TEXT,
