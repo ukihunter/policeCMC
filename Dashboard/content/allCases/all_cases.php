@@ -2,14 +2,31 @@
 session_start();
 require_once('../../../config/db.php');
 
-// Fetch all cases from database with user info
+// Pagination settings
+$cases_per_page = 10;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$page = max(1, $page); // Ensure page is at least 1
+$offset = ($page - 1) * $cases_per_page;
+
+// Get total count of cases
+$count_sql = "SELECT COUNT(*) as total FROM cases";
+$count_result = $conn->query($count_sql);
+$total_cases = 0;
+if ($count_result) {
+    $count_row = $count_result->fetch_assoc();
+    $total_cases = $count_row['total'];
+}
+$total_pages = ceil($total_cases / $cases_per_page);
+
+// Fetch cases for current page with user info
 $sql = "SELECT c.*, 
         u1.full_name as created_by_name,
         u2.full_name as updated_by_name
         FROM cases c
         LEFT JOIN users u1 ON c.created_by = u1.id
         LEFT JOIN users u2 ON c.updated_by = u2.id
-        ORDER BY c.created_at DESC";
+        ORDER BY c.created_at DESC
+        LIMIT $cases_per_page OFFSET $offset";
 $result = $conn->query($sql);
 $cases = [];
 if ($result) {
@@ -255,6 +272,46 @@ if ($result) {
             </tbody>
         </table>
     </div>
+
+    <!-- Pagination -->
+    <?php if ($total_pages > 1): ?>
+        <div class="pagination">
+            <div class="pagination-info">
+                Showing <?php echo $offset + 1; ?> to <?php echo min($offset + $cases_per_page, $total_cases); ?> of <?php echo $total_cases; ?> cases
+            </div>
+            <div class="pagination-controls">
+                <?php if ($page > 1): ?>
+                    <button class="pagination-btn" onclick="loadPage(1)">
+                        <i class="fas fa-angle-double-left"></i> First
+                    </button>
+                    <button class="pagination-btn" onclick="loadPage(<?php echo $page - 1; ?>)">
+                        <i class="fas fa-angle-left"></i> Previous
+                    </button>
+                <?php endif; ?>
+
+                <?php
+                // Show page numbers
+                $start_page = max(1, $page - 2);
+                $end_page = min($total_pages, $page + 2);
+
+                for ($i = $start_page; $i <= $end_page; $i++):
+                ?>
+                    <button class="pagination-btn <?php echo $i == $page ? 'active' : ''; ?>" onclick="loadPage(<?php echo $i; ?>)">
+                        <?php echo $i; ?>
+                    </button>
+                <?php endfor; ?>
+
+                <?php if ($page < $total_pages): ?>
+                    <button class="pagination-btn" onclick="loadPage(<?php echo $page + 1; ?>)">
+                        Next <i class="fas fa-angle-right"></i>
+                    </button>
+                    <button class="pagination-btn" onclick="loadPage(<?php echo $total_pages; ?>)">
+                        Last <i class="fas fa-angle-double-right"></i>
+                    </button>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endif; ?>
 <?php endif; ?>
 
 <!-- Case Details Modal -->
@@ -271,6 +328,27 @@ if ($result) {
 </div>
 
 <script>
+    // Load specific page
+    window.loadPage = function(pageNumber) {
+        const casesContent = document.getElementById('cases-content');
+        casesContent.innerHTML = '<h2><i class="fas fa-folder-open"></i> All Cases</h2><p>Loading cases...</p>';
+
+        fetch('content/allCases/all_cases.php?page=' + pageNumber)
+            .then(response => response.text())
+            .then(data => {
+                casesContent.innerHTML = data;
+                // Scroll to top of cases section
+                casesContent.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            })
+            .catch(error => {
+                console.error('Error loading page:', error);
+                casesContent.innerHTML = '<h2><i class="fas fa-folder-open"></i> All Cases</h2><p style="color: red;">Error loading cases. Please try again.</p>';
+            });
+    };
+
     // Define functions immediately and attach to window
     window.filterCases = function() {
         const searchCaseNumber = document.getElementById('searchCaseNumber').value.toUpperCase();
