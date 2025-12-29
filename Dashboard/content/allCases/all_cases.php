@@ -169,20 +169,13 @@ if ($result) {
         <table class="cases-table" id="casesTable">
             <thead>
                 <tr>
-                    <th>Case Number</th>
-                    <th>Previous Date</th>
-                    <th>Information Book</th>
-                    <th>Register</th>
-                    <th>B Report Date</th>
-                    <th>Plant Date</th>
-                    <th>Opens</th>
-                    <th>Attorney General Advice</th>
-                    <th>PR & Handover Date</th>
-                    <th>Comment Analyst Report</th>
-                    <th>Progress</th>
-                    <th>Results</th>
+                    <th>Case No / Previous Date</th>
+                    <th>Information Book / Register</th>
+                    <th>offense</th>
                     <th>Suspects</th>
                     <th>Witnesses</th>
+                    <th>Progress</th>
+                    <th>Results</th>
                     <th>Next Date</th>
                     <th>Actions</th>
                 </tr>
@@ -193,45 +186,39 @@ if ($result) {
                         data-register="<?php echo htmlspecialchars($case['register_number']); ?>"
                         data-info-book="<?php echo htmlspecialchars($case['information_book']); ?>"
                         data-prev-date="<?php echo $case['previous_date'] ?? ''; ?>"
-                        data-b-report-date="<?php echo $case['date_produce_b_report'] ?? ''; ?>"
-                        data-plant-date="<?php echo $case['date_produce_plant'] ?? ''; ?>"
                         data-handover-date="<?php echo $case['date_handover_court'] ?? ''; ?>"
                         data-next-date="<?php echo $case['next_date'] ?? ''; ?>"
                         data-attorney-advice="<?php echo $case['attorney_general_advice'] ?? ''; ?>"
                         data-analyst-report="<?php echo $case['analyst_report'] ?? ''; ?>">
+                        <!-- Case Number and Previous Date -->
+                        <td>
+                            <div class="case-main">
+                                <strong><?php echo htmlspecialchars($case['case_number']); ?></strong>
+                                <div class="case-sub">
+                                    <?php echo $case['previous_date'] ? date('d M Y', strtotime($case['previous_date'])) : '-'; ?>
+                                </div>
+                            </div>
+                        </td>
+                        <!-- Information Book and Register Number -->
+                        <td>
+                            <div class="case-main">
+                                <strong><?php echo htmlspecialchars($case['information_book']); ?></strong>
+                                <div class="case-sub">
+                                    <?php echo htmlspecialchars($case['register_number']); ?>
+                                </div>
+                            </div>
+                        </td>
+                        <!-- offense -->
 
-                        <td><strong><?php echo htmlspecialchars($case['case_number']); ?></strong></td>
-                        <td><?php echo $case['previous_date'] ? date('d M Y', strtotime($case['previous_date'])) : '-'; ?></td>
-                        <td><?php echo htmlspecialchars($case['information_book']); ?></td>
-                        <td><?php echo htmlspecialchars($case['register_number']); ?></td>
-                        <td><?php echo $case['date_produce_b_report'] ? date('d M Y', strtotime($case['date_produce_b_report'])) : '-'; ?></td>
-                        <td><?php echo $case['date_produce_plant'] ? date('d M Y', strtotime($case['date_produce_plant'])) : '-'; ?></td>
                         <td>
                             <div class="cell-content">
                                 <?php echo htmlspecialchars(substr($case['opens'] ?? '-', 0, 50)) . (strlen($case['opens'] ?? '') > 50 ? '...' : ''); ?>
                             </div>
                         </td>
-                        <td>
-                            <span class="badge-yn <?php echo ($case['attorney_general_advice'] === 'YES') ? 'badge-yes' : 'badge-no'; ?>">
-                                <?php echo $case['attorney_general_advice'] ?? '-'; ?>
-                            </span>
-                        </td>
-                        <td><?php echo $case['date_handover_court'] ? date('d M Y', strtotime($case['date_handover_court'])) : '-'; ?></td>
-                        <td>
-                            <span class="badge-yn <?php echo ($case['analyst_report'] === 'YES') ? 'badge-yes' : 'badge-no'; ?>">
-                                <?php echo $case['analyst_report'] ?? '-'; ?>
-                            </span>
-                        </td>
-                        <td>
-                            <div class="cell-content">
-                                <?php echo htmlspecialchars(substr($case['progress'] ?? '-', 0, 50)) . (strlen($case['progress'] ?? '') > 50 ? '...' : ''); ?>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="cell-content">
-                                <?php echo htmlspecialchars(substr($case['results'] ?? '-', 0, 50)) . (strlen($case['results'] ?? '') > 50 ? '...' : ''); ?>
-                            </div>
-                        </td>
+
+
+
+
                         <td>
                             <div class="cell-content">
                                 <?php
@@ -256,6 +243,17 @@ if ($result) {
                                 ?>
                             </div>
                         </td>
+                        <td>
+                            <div class="cell-content">
+                                <?php echo htmlspecialchars(substr($case['progress'] ?? '-', 0, 50)) . (strlen($case['progress'] ?? '') > 50 ? '...' : ''); ?>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="cell-content">
+                                <?php echo htmlspecialchars(substr($case['results'] ?? '-', 0, 50)) . (strlen($case['results'] ?? '') > 50 ? '...' : ''); ?>
+                            </div>
+                        </td>
+
                         <td><?php echo $case['next_date'] ? date('d M Y', strtotime($case['next_date'])) : '-'; ?></td>
                         <td>
                             <div class="action-buttons">

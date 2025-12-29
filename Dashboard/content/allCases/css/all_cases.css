@@ -881,3 +881,12 @@
   color: #4a9eff;
   margin-right: 8px;
 }
+.case-main {
+  display: flex;
+  flex-direction: column;
+}
+
+.case-sub {
+  font-size: 12px;
+  color: #6c757d;
+}

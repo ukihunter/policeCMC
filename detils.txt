@@ -32,3 +32,62 @@ Progress
 Results
 
 Next Date
+
+
+
+
+add not workjing ehen i swicjhtab 
+make the all case tabel viwerbale
+make priview more good make that and make the edit work 
+when add next date it want o see the privous next date reacord 
+
+A5 land 
+
+tables 
+
+case number+
+privous date 
+infformation book + register
+offence
+
+witnesses
+suspects(police area)
+progress(police area)
+result
+next date
+
+
+
+
+///////////////////////////////
+progress and result 
+next
+
+
+thni kolekata case 2 3 k dan pluwan wena one
+
+
+comment govemnt  anlysi report (print epa)
+
+
+
+
+
+ <tr>
+                    <th>Case Number</th>
+                    <th>Previous Date</th>
+                    <th>Information Book</th>
+                    <th>Register</th>
+                    <th>B Report Date</th>
+                    <th>Plant Date</th>
+                    <th>Opens</th>
+                    <th>Attorney General Advice</th>
+                    <th>PR & Handover Date</th>
+                    <th>Comment Analyst Report</th>
+                    <th>Progress</th>
+                    <th>Results</th>
+                    <th>Suspects</th>
+                    <th>Witnesses</th>
+                    <th>Next Date</th>
+                    <th>Actions</th>
+                </tr>
