@@ -332,6 +332,10 @@ if ($result) {
 <?php include 'print_case_modal.php'; ?>
 
 <script>
+    // Global variables for print modal
+    var currentPrintCaseData = null;
+    var currentPrintHistory = null;
+
     // Load specific page
     window.loadPage = function(pageNumber) {
         const casesContent = document.getElementById('cases-content');
@@ -597,6 +601,8 @@ if ($result) {
                         <div class="detail-item full-width">
                             <label>Production Register Number:</label>
                             <span>${(caseData.production_register_number || '-').replace(/\n/g, '<br>')}</span>
+                            <label>Date Handover to Court:</label>
+                            <span>${caseData.date_handover_court ? new Date(caseData.date_handover_court).toLocaleDateString('en-GB') : '-'}</span>
                         </div>
                     </div>
                 </div>
@@ -612,7 +618,7 @@ if ($result) {
                                 </div>
                                 <div class="list-item-details">
                                     <div class="detail-row">
-                                        <span class="detail-label"><i class="fas fa-id-card"></i> IC Number:</span>
+                                        <span class="detail-label"><i class="fas fa-id-card"></i> NIC Number:</span>
                                         <span>${s.ic || '-'}</span>
                                     </div>
                                     <div class="detail-row">
@@ -637,7 +643,7 @@ if ($result) {
                                 </div>
                                 <div class="list-item-details">
                                     <div class="detail-row">
-                                        <span class="detail-label"><i class="fas fa-id-card"></i> IC Number:</span>
+                                        <span class="detail-label"><i class="fas fa-id-card"></i> NIC Number:</span>
                                         <span>${w.ic || '-'}</span>
                                     </div>
                                     <div class="detail-row">
@@ -871,5 +877,302 @@ if ($result) {
                 alert('Error loading case details');
                 printModal.style.display = 'none';
             });
+    }
+
+    // Print Modal Functions
+    window.closePrintModal = function() {
+        const modal = document.getElementById('printCaseModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    window.selectAllPrintFields = function() {
+        const checkboxes = document.querySelectorAll('.print-field');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = true;
+        });
+        console.log('Selected all fields:', checkboxes.length);
+    }
+
+    window.deselectAllPrintFields = function() {
+        const checkboxes = document.querySelectorAll('.print-field');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        console.log('Deselected all fields:', checkboxes.length);
+    }
+
+    window.selectCourtEssentials = function() {
+        window.deselectAllPrintFields();
+        const essentials = ['case_number', 'previous_date', 'register_number', 'next_date', 'suspects', 'witnesses', 'opens', 'attorney_general_advice'];
+        essentials.forEach(field => {
+            const checkbox = document.querySelector(`.print-field[data-field="${field}"]`);
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+        });
+        console.log('Selected court essentials');
+    }
+
+    window.generatePrint = function() {
+        console.log('Generate print called');
+
+        if (!currentPrintCaseData) {
+            alert('No case data available');
+            return;
+        }
+
+        const selectedFields = [];
+        document.querySelectorAll('.print-field:checked').forEach(checkbox => {
+            selectedFields.push(checkbox.dataset.field);
+        });
+
+        console.log('Selected fields:', selectedFields);
+
+        if (selectedFields.length === 0) {
+            alert('Please select at least one field to print');
+            return;
+        }
+
+        const printContent = window.generatePrintHTML(currentPrintCaseData, currentPrintHistory, selectedFields);
+
+        // Create or update print container
+        let printContainer = document.getElementById('printContent');
+        if (!printContainer) {
+            printContainer = document.createElement('div');
+            printContainer.id = 'printContent';
+            document.body.appendChild(printContainer);
+        }
+
+        printContainer.innerHTML = printContent;
+
+        // Close modal and print
+        window.closePrintModal();
+
+        // Small delay to ensure rendering
+        setTimeout(() => {
+            window.print();
+        }, 100);
+    }
+
+    window.generatePrintHTML = function(caseData, history, selectedFields) {
+        const formatDate = (dateString) => {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+        };
+
+        // Build table headers dynamically based on selected fields
+        let headers = [];
+        let values = [];
+
+        // Define field mapping
+        const fieldMapping = {
+            'case_number': {
+                label: 'Case Number',
+                value: caseData.case_number || '-'
+            },
+            'previous_date': {
+                label: 'Previous Date',
+                value: formatDate(caseData.previous_date)
+            },
+            'information_book': {
+                label: 'Information Book',
+                value: caseData.information_book || '-'
+            },
+            'register_number': {
+                label: 'Register Number',
+                value: caseData.register_number || '-'
+            },
+            'date_produce_b_report': {
+                label: 'Date of Produce B Report',
+                value: formatDate(caseData.date_produce_b_report)
+            },
+            'date_produce_plant': {
+                label: 'Date of Produce Plant',
+                value: formatDate(caseData.date_produce_plant)
+            },
+            'date_handover_court': {
+                label: 'Date Handover Court',
+                value: formatDate(caseData.date_handover_court)
+            },
+            'next_date': {
+                label: 'Next Date',
+                value: formatDate(caseData.next_date)
+            },
+            'opens': {
+                label: 'Opens',
+                value: (caseData.opens || '-').replace(/\n/g, '<br>')
+            },
+            'attorney_general_advice': {
+                label: "Attorney General's Advice (YES/NO)",
+                value: caseData.attorney_general_advice || '-'
+            },
+            'receival_memorandum': {
+                label: 'Receival Memorandum',
+                value: caseData.receival_memorandum || '-'
+            },
+            'analyst_report': {
+                label: "Government Analyst's Report (YES/NO)",
+                value: caseData.analyst_report || '-'
+            },
+            'production_register_number': {
+                label: 'Production Register Number / Date of Hand over to Court',
+                value: (caseData.production_register_number || '-').replace(/\n/g, '<br>')
+            },
+            'suspects': {
+                label: 'Suspect Name, Address, NIC Number',
+                value: ''
+            },
+            'witnesses': {
+                label: 'Witness Name, Address, NIC Number',
+                value: ''
+            },
+            'progress': {
+                label: 'Progress',
+                value: (caseData.progress || '-').replace(/\n/g, '<br>')
+            },
+            'results': {
+                label: 'Results',
+                value: (caseData.results || '-').replace(/\n/g, '<br>')
+            }
+        };
+
+        // Special handling for suspects
+        if (selectedFields.includes('suspects')) {
+            const suspects = JSON.parse(caseData.suspect_data || '[]');
+            let suspectText = '';
+            if (suspects.length > 0) {
+                suspects.forEach((suspect, index) => {
+                    if (index > 0) suspectText += '<br><br>';
+                    suspectText += `${index + 1}. ${suspect.name || '-'}<br>${suspect.address || '-'}<br>NIC ${suspect.ic || '-'}`;
+                });
+            } else {
+                suspectText = '-';
+            }
+            fieldMapping['suspects'].value = suspectText;
+        }
+
+        // Special handling for witnesses
+        if (selectedFields.includes('witnesses')) {
+            const witnesses = JSON.parse(caseData.witness_data || '[]');
+            let witnessText = '';
+            if (witnesses.length > 0) {
+                witnesses.forEach((witness, index) => {
+                    if (index > 0) witnessText += '<br><br>';
+                    witnessText += `${index + 1}. ${witness.name || '-'}<br>${witness.address || '-'}<br>NIC ${witness.ic || '-'}`;
+                });
+            } else {
+                witnessText = '-';
+            }
+            fieldMapping['witnesses'].value = witnessText;
+        }
+
+        // Build headers and values arrays based on selected fields
+        selectedFields.forEach(field => {
+            if (field !== 'next_date_history' && fieldMapping[field]) {
+                headers.push(fieldMapping[field].label);
+                values.push(fieldMapping[field].value);
+            }
+        });
+
+        let htmlContent = `
+        <div style="font-family: 'Arial', sans-serif; padding: 10px;">
+            <div style="text-align: center; margin-bottom: 15px;">
+                <h1 style="color: #000; margin: 0; font-size: 16px; font-weight: bold;">POLICE CASE MANAGEMENT SYSTEM - Case Details Report</h1>
+                <p style="color: #333; font-size: 9px; margin: 5px 0;">Generated on: ${new Date().toLocaleString('en-GB')}</p>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; font-size: 9px; border: 1px solid #000;">
+                <thead>
+                    <tr>
+        `;
+
+        // Add header cells
+        headers.forEach(header => {
+            htmlContent += `<th style="border: 1px solid #000; padding: 8px 4px; background: #000; color: #fff; font-weight: bold; text-align: center; vertical-align: middle; writing-mode: horizontal-tb; min-width: 60px;">${header}</th>`;
+        });
+
+        htmlContent += `
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+        `;
+
+        // Add value cells
+        values.forEach(value => {
+            htmlContent += `<td style="border: 1px solid #000; padding: 6px 4px; vertical-align: top; text-align: left; line-height: 1.4;">${value}</td>`;
+        });
+
+        htmlContent += `
+                    </tr>
+        `;
+
+        // Add Next Date History as additional rows if selected
+        if (selectedFields.includes('next_date_history') && history && history.length > 0) {
+            htmlContent += `
+                </tbody>
+            </table>
+            
+            <div style="margin-top: 15px;">
+                <h3 style="color: #000; font-size: 11px; font-weight: bold; margin-bottom: 8px; text-transform: uppercase;">Next Date History (${history.length} entries)</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 9px; border: 1px solid #000;">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid #000; padding: 6px; background: #000; color: #fff; font-weight: bold; width: 15%;">Date</th>
+                            <th style="border: 1px solid #000; padding: 6px; background: #000; color: #fff; font-weight: bold; width: 50%;">Notes</th>
+                            <th style="border: 1px solid #000; padding: 6px; background: #000; color: #fff; font-weight: bold; width: 35%;">Set By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            history.forEach((entry, index) => {
+                htmlContent += `
+                    <tr style="${index === 0 ? 'background: #f0f0f0; font-weight: bold;' : ''}">
+                        <td style="border: 1px solid #000; padding: 6px; vertical-align: top;">${formatDate(entry.next_date)}${index === 0 ? ' (CURRENT)' : ''}</td>
+                        <td style="border: 1px solid #000; padding: 6px; vertical-align: top;">${entry.notes || '-'}</td>
+                        <td style="border: 1px solid #000; padding: 6px; vertical-align: top;">${entry.created_by_name || 'Unknown'}<br><span style="font-size: 8px;">${new Date(entry.created_at).toLocaleString('en-GB')}</span></td>
+                    </tr>
+                `;
+            });
+
+            htmlContent += `
+                    </tbody>
+                </table>
+            </div>
+            `;
+        } else {
+            htmlContent += `
+                </tbody>
+            </table>
+            `;
+        }
+
+        htmlContent += `
+            <div style="margin-top: 15px; text-align: center; font-size: 8px; color: #333;">
+                <p style="margin: 2px 0;">This document is an official record from the Police Case Management System - Generated automatically</p>
+            </div>
+        </div>
+        `;
+
+        return htmlContent;
+    }
+
+    // Close modal when clicking outside
+    if (!window.printModalClickHandlerAdded) {
+        window.addEventListener('click', function(event) {
+            const printModal = document.getElementById('printCaseModal');
+            if (event.target == printModal) {
+                window.closePrintModal();
+            }
+        });
+        window.printModalClickHandlerAdded = true;
     }
 </script>
