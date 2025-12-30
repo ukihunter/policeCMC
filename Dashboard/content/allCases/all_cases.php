@@ -968,8 +968,7 @@ if ($result) {
         };
 
         // Define fixed column structure in order - ignoring selectedFields
-        const columns = [
-            {
+        const columns = [{
                 key: 'case_previous',
                 header: 'Case Number / Previous Date',
                 getValue: () => {
@@ -1034,8 +1033,7 @@ if ($result) {
                 key: 'government_analyst',
                 header: "Government Analyst's Report",
                 hasSubColumns: true,
-                subColumns: [
-                    {
+                subColumns: [{
                         key: 'receival_memorandum',
                         header: 'Receival Memorandum',
                         getValue: () => caseData.receival_memorandum || ''
@@ -1105,7 +1103,7 @@ if ($result) {
 
         // Build header rows
         let hasSubColumns = columns.some(col => col.hasSubColumns);
-        
+
         if (hasSubColumns) {
             // First header row - main columns
             htmlContent += '<tr>';
