@@ -91,3 +91,36 @@ comment govemnt  anlysi report (print epa)
                     <th>Next Date</th>
                     <th>Actions</th>
                 </tr>
+
+
+
+
+                in print tabel heders shold be like this
+
+1.case number/privous date (same coulmn )
+2.Information Book / Register number (same coulmn)
+3. it is not opens it is offence
+4. Receival Memorandum and Analyst's Report want to be in same column but those two main colun heder want to be Government Analyst’s Report in that main column Receival Memorandum and Analyst's Report want to be sub columns
+5. proodction register numbers / data of hand over to court (add this to same column )
+6 .in the last column add next datae and bext date history dont want o be print it show in the sysytem only
+
+and this is the order columns should be
+
+1.case number / privois date
+2.inforamtion book/register number
+3.Date of Produce B Report
+4. Date of Produce Plant
+5.offence
+6.Attorney General’s Advice
+7.Production Register Number / Date of Hand Over to Court
+8. main column : Government Analyst’s Report
+sub column to Government Analyst’s Report
+:Receival Memorandum
+: Analyst’s Report
+9. Suspect Name, Address, NIC Number
+10. Witness Name, Address, NIC Number
+11. Progress
+12. Results
+13. Next Date
+
+if any coluns are emty keep it empty so user can pscialy write it

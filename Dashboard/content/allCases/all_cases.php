@@ -958,7 +958,7 @@ if ($result) {
 
     window.generatePrintHTML = function(caseData, history, selectedFields) {
         const formatDate = (dateString) => {
-            if (!dateString) return '-';
+            if (!dateString) return '';
             const date = new Date(dateString);
             return date.toLocaleDateString('en-GB', {
                 day: '2-digit',
@@ -967,119 +967,130 @@ if ($result) {
             });
         };
 
-        // Build table headers dynamically based on selected fields
-        let headers = [];
-        let values = [];
-
-        // Define field mapping
-        const fieldMapping = {
-            'case_number': {
-                label: 'Case Number',
-                value: caseData.case_number || '-'
+        // Define fixed column structure in order - ignoring selectedFields
+        const columns = [
+            {
+                key: 'case_previous',
+                header: 'Case Number / Previous Date',
+                getValue: () => {
+                    let val = '';
+                    if (caseData.case_number) val += caseData.case_number;
+                    if (caseData.previous_date) {
+                        if (val) val += '<br>';
+                        val += formatDate(caseData.previous_date);
+                    }
+                    return val;
+                }
             },
-            'previous_date': {
-                label: 'Previous Date',
-                value: formatDate(caseData.previous_date)
+            {
+                key: 'info_register',
+                header: 'Information Book / Register Number',
+                getValue: () => {
+                    let val = '';
+                    if (caseData.information_book) val += caseData.information_book;
+                    if (caseData.register_number) {
+                        if (val) val += '<br>';
+                        val += caseData.register_number;
+                    }
+                    return val;
+                }
             },
-            'information_book': {
-                label: 'Information Book',
-                value: caseData.information_book || '-'
+            {
+                key: 'date_produce_b_report',
+                header: 'Date of Produce B Report',
+                getValue: () => formatDate(caseData.date_produce_b_report)
             },
-            'register_number': {
-                label: 'Register Number',
-                value: caseData.register_number || '-'
+            {
+                key: 'date_produce_plant',
+                header: 'Date of Produce Plant',
+                getValue: () => formatDate(caseData.date_produce_plant)
             },
-            'date_produce_b_report': {
-                label: 'Date of Produce B Report',
-                value: formatDate(caseData.date_produce_b_report)
+            {
+                key: 'offence',
+                header: 'Offence',
+                getValue: () => caseData.opens ? caseData.opens.replace(/\n/g, '<br>') : ''
             },
-            'date_produce_plant': {
-                label: 'Date of Produce Plant',
-                value: formatDate(caseData.date_produce_plant)
+            {
+                key: 'attorney_general_advice',
+                header: "Attorney General's Advice",
+                getValue: () => caseData.attorney_general_advice || ''
             },
-            'date_handover_court': {
-                label: 'Date Handover Court',
-                value: formatDate(caseData.date_handover_court)
+            {
+                key: 'production_handover',
+                header: 'Production Register Number / Date of Hand Over to Court',
+                getValue: () => {
+                    let val = '';
+                    if (caseData.production_register_number) {
+                        val += caseData.production_register_number.replace(/\n/g, '<br>');
+                    }
+                    if (caseData.date_handover_court) {
+                        if (val) val += '<br>';
+                        val += formatDate(caseData.date_handover_court);
+                    }
+                    return val;
+                }
             },
-            'next_date': {
-                label: 'Next Date',
-                value: formatDate(caseData.next_date)
+            {
+                key: 'government_analyst',
+                header: "Government Analyst's Report",
+                hasSubColumns: true,
+                subColumns: [
+                    {
+                        key: 'receival_memorandum',
+                        header: 'Receival Memorandum',
+                        getValue: () => caseData.receival_memorandum || ''
+                    },
+                    {
+                        key: 'analyst_report',
+                        header: "Analyst's Report",
+                        getValue: () => caseData.analyst_report || ''
+                    }
+                ]
             },
-            'opens': {
-                label: 'Opens',
-                value: (caseData.opens || '-').replace(/\n/g, '<br>')
+            {
+                key: 'suspects',
+                header: 'Suspect Name, Address, NIC Number',
+                getValue: () => {
+                    const suspects = JSON.parse(caseData.suspect_data || '[]');
+                    if (suspects.length === 0) return '';
+                    let text = '';
+                    suspects.forEach((suspect, index) => {
+                        if (index > 0) text += '<br><br>';
+                        text += `${index + 1}. ${suspect.name || ''}<br>${suspect.address || ''}<br>NIC ${suspect.ic || ''}`;
+                    });
+                    return text;
+                }
             },
-            'attorney_general_advice': {
-                label: "Attorney General's Advice (YES/NO)",
-                value: caseData.attorney_general_advice || '-'
+            {
+                key: 'witnesses',
+                header: 'Witness Name, Address, NIC Number',
+                getValue: () => {
+                    const witnesses = JSON.parse(caseData.witness_data || '[]');
+                    if (witnesses.length === 0) return '';
+                    let text = '';
+                    witnesses.forEach((witness, index) => {
+                        if (index > 0) text += '<br><br>';
+                        text += `${index + 1}. ${witness.name || ''}<br>${witness.address || ''}<br>NIC ${witness.ic || ''}`;
+                    });
+                    return text;
+                }
             },
-            'receival_memorandum': {
-                label: 'Receival Memorandum',
-                value: caseData.receival_memorandum || '-'
+            {
+                key: 'progress',
+                header: 'Progress',
+                getValue: () => caseData.progress ? caseData.progress.replace(/\n/g, '<br>') : ''
             },
-            'analyst_report': {
-                label: "Government Analyst's Report (YES/NO)",
-                value: caseData.analyst_report || '-'
+            {
+                key: 'results',
+                header: 'Results',
+                getValue: () => caseData.results ? caseData.results.replace(/\n/g, '<br>') : ''
             },
-            'production_register_number': {
-                label: 'Production Register Number / Date of Hand over to Court',
-                value: (caseData.production_register_number || '-').replace(/\n/g, '<br>')
-            },
-            'suspects': {
-                label: 'Suspect Name, Address, NIC Number',
-                value: ''
-            },
-            'witnesses': {
-                label: 'Witness Name, Address, NIC Number',
-                value: ''
-            },
-            'progress': {
-                label: 'Progress',
-                value: (caseData.progress || '-').replace(/\n/g, '<br>')
-            },
-            'results': {
-                label: 'Results',
-                value: (caseData.results || '-').replace(/\n/g, '<br>')
+            {
+                key: 'next_date',
+                header: 'Next Date',
+                getValue: () => formatDate(caseData.next_date)
             }
-        };
-
-        // Special handling for suspects
-        if (selectedFields.includes('suspects')) {
-            const suspects = JSON.parse(caseData.suspect_data || '[]');
-            let suspectText = '';
-            if (suspects.length > 0) {
-                suspects.forEach((suspect, index) => {
-                    if (index > 0) suspectText += '<br><br>';
-                    suspectText += `${index + 1}. ${suspect.name || '-'}<br>${suspect.address || '-'}<br>NIC ${suspect.ic || '-'}`;
-                });
-            } else {
-                suspectText = '-';
-            }
-            fieldMapping['suspects'].value = suspectText;
-        }
-
-        // Special handling for witnesses
-        if (selectedFields.includes('witnesses')) {
-            const witnesses = JSON.parse(caseData.witness_data || '[]');
-            let witnessText = '';
-            if (witnesses.length > 0) {
-                witnesses.forEach((witness, index) => {
-                    if (index > 0) witnessText += '<br><br>';
-                    witnessText += `${index + 1}. ${witness.name || '-'}<br>${witness.address || '-'}<br>NIC ${witness.ic || '-'}`;
-                });
-            } else {
-                witnessText = '-';
-            }
-            fieldMapping['witnesses'].value = witnessText;
-        }
-
-        // Build headers and values arrays based on selected fields
-        selectedFields.forEach(field => {
-            if (field !== 'next_date_history' && fieldMapping[field]) {
-                headers.push(fieldMapping[field].label);
-                values.push(fieldMapping[field].value);
-            }
-        });
+        ];
 
         let htmlContent = `
         <div style="font-family: 'Arial', sans-serif; padding: 10px;">
@@ -1090,72 +1101,66 @@ if ($result) {
             
             <table style="width: 100%; border-collapse: collapse; font-size: 9px; border: 1px solid #000;">
                 <thead>
-                    <tr>
         `;
 
-        // Add header cells
-        headers.forEach(header => {
-            htmlContent += `<th style="border: 1px solid #000; padding: 8px 4px; background: #000; color: #fff; font-weight: bold; text-align: center; vertical-align: middle; writing-mode: horizontal-tb; min-width: 60px;">${header}</th>`;
-        });
+        // Build header rows
+        let hasSubColumns = columns.some(col => col.hasSubColumns);
+        
+        if (hasSubColumns) {
+            // First header row - main columns
+            htmlContent += '<tr>';
+            columns.forEach(col => {
+                if (col.hasSubColumns) {
+                    htmlContent += `<th colspan="${col.subColumns.length}" style="border: 1px solid #000; padding: 8px 4px; background: #000; color: #fff; font-weight: bold; text-align: center; vertical-align: middle;">${col.header}</th>`;
+                } else {
+                    htmlContent += `<th rowspan="2" style="border: 1px solid #000; padding: 8px 4px; background: #000; color: #fff; font-weight: bold; text-align: center; vertical-align: middle; min-width: 60px;">${col.header}</th>`;
+                }
+            });
+            htmlContent += '</tr>';
+
+            // Second header row - sub columns
+            htmlContent += '<tr>';
+            columns.forEach(col => {
+                if (col.hasSubColumns) {
+                    col.subColumns.forEach(subCol => {
+                        htmlContent += `<th style="border: 1px solid #000; padding: 6px 3px; background: #333; color: #fff; font-weight: bold; text-align: center; vertical-align: middle; font-size: 8px;">${subCol.header}</th>`;
+                    });
+                }
+            });
+            htmlContent += '</tr>';
+        } else {
+            // Single header row
+            htmlContent += '<tr>';
+            columns.forEach(col => {
+                htmlContent += `<th style="border: 1px solid #000; padding: 8px 4px; background: #000; color: #fff; font-weight: bold; text-align: center; vertical-align: middle; min-width: 60px;">${col.header}</th>`;
+            });
+            htmlContent += '</tr>';
+        }
 
         htmlContent += `
-                    </tr>
                 </thead>
                 <tbody>
                     <tr>
         `;
 
-        // Add value cells
-        values.forEach(value => {
-            htmlContent += `<td style="border: 1px solid #000; padding: 6px 4px; vertical-align: top; text-align: left; line-height: 1.4;">${value}</td>`;
+        // Add data cells
+        columns.forEach(col => {
+            if (col.hasSubColumns) {
+                col.subColumns.forEach(subCol => {
+                    const value = subCol.getValue();
+                    htmlContent += `<td style="border: 1px solid #000; padding: 6px 4px; vertical-align: top; text-align: left; line-height: 1.4;">${value}</td>`;
+                });
+            } else {
+                const value = col.getValue();
+                htmlContent += `<td style="border: 1px solid #000; padding: 6px 4px; vertical-align: top; text-align: left; line-height: 1.4;">${value}</td>`;
+            }
         });
 
         htmlContent += `
                     </tr>
-        `;
-
-        // Add Next Date History as additional rows if selected
-        if (selectedFields.includes('next_date_history') && history && history.length > 0) {
-            htmlContent += `
                 </tbody>
             </table>
             
-            <div style="margin-top: 15px;">
-                <h3 style="color: #000; font-size: 11px; font-weight: bold; margin-bottom: 8px; text-transform: uppercase;">Next Date History (${history.length} entries)</h3>
-                <table style="width: 100%; border-collapse: collapse; font-size: 9px; border: 1px solid #000;">
-                    <thead>
-                        <tr>
-                            <th style="border: 1px solid #000; padding: 6px; background: #000; color: #fff; font-weight: bold; width: 15%;">Date</th>
-                            <th style="border: 1px solid #000; padding: 6px; background: #000; color: #fff; font-weight: bold; width: 50%;">Notes</th>
-                            <th style="border: 1px solid #000; padding: 6px; background: #000; color: #fff; font-weight: bold; width: 35%;">Set By</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            history.forEach((entry, index) => {
-                htmlContent += `
-                    <tr style="${index === 0 ? 'background: #f0f0f0; font-weight: bold;' : ''}">
-                        <td style="border: 1px solid #000; padding: 6px; vertical-align: top;">${formatDate(entry.next_date)}${index === 0 ? ' (CURRENT)' : ''}</td>
-                        <td style="border: 1px solid #000; padding: 6px; vertical-align: top;">${entry.notes || '-'}</td>
-                        <td style="border: 1px solid #000; padding: 6px; vertical-align: top;">${entry.created_by_name || 'Unknown'}<br><span style="font-size: 8px;">${new Date(entry.created_at).toLocaleString('en-GB')}</span></td>
-                    </tr>
-                `;
-            });
-
-            htmlContent += `
-                    </tbody>
-                </table>
-            </div>
-            `;
-        } else {
-            htmlContent += `
-                </tbody>
-            </table>
-            `;
-        }
-
-        htmlContent += `
             <div style="margin-top: 15px; text-align: center; font-size: 8px; color: #333;">
                 <p style="margin: 2px 0;">This document is an official record from the Police Case Management System - Generated automatically</p>
             </div>
