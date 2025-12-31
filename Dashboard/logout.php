@@ -11,6 +11,7 @@ session_destroy();
 ?>
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Logging out...</title>
     <script>
@@ -20,7 +21,9 @@ session_destroy();
         window.location.href = '../login/login.php';
     </script>
 </head>
+
 <body>
     <p>Logging out...</p>
 </body>
+
 </html>

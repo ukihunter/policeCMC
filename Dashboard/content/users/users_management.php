@@ -286,9 +286,9 @@ $is_admin = ($current_user['role'] === 'admin');
             <div class="modal-body">
                 <form id="resetPasswordForm" class="user-form">
                     <input type="hidden" id="reset_user_id" name="user_id">
-                    
+
                     <div class="alert-info" style="margin-bottom: 20px; padding: 15px; background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 4px;">
-                        <i class="fas fa-info-circle"></i> 
+                        <i class="fas fa-info-circle"></i>
                         Resetting password for: <strong id="reset_user_name"></strong>
                     </div>
 
