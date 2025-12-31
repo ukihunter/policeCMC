@@ -349,12 +349,12 @@ if (!isset($_SESSION["user_id"])) {
             if (tabName === 'cases') {
                 const sidebar = document.getElementById('sidebar');
                 const icon = document.getElementById('toggleIcon');
-                
+
                 if (!sidebar.classList.contains('collapsed')) {
                     sidebar.classList.add('collapsed');
                     icon.className = 'fas fa-chevron-right';
                 }
-                
+
                 loadCasesContent();
             } else if (tabName === 'add-case') {
                 loadAddCaseContent();

@@ -1009,8 +1009,8 @@ if ($result) {
         bulkActions.innerHTML = '<span style="color: #4a9eff;"><i class="fas fa-spinner fa-spin"></i> Loading cases...</span>';
 
         // Fetch all selected cases data
-        Promise.all(bulkPrintCaseIds.map(id => 
-            fetch('content/allCases/get_case_details.php?id=' + id)
+        Promise.all(bulkPrintCaseIds.map(id =>
+                fetch('content/allCases/get_case_details.php?id=' + id)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -1023,62 +1023,62 @@ if ($result) {
                     }
                     return null;
                 })
-        ))
-        .then(casesData => {
-            bulkActions.innerHTML = originalHTML;
-            
-            // Filter out any failed fetches
-            const validCases = casesData.filter(c => c !== null);
-            
-            if (validCases.length === 0) {
-                alert('Failed to load case data');
-                bulkPrintMode = false;
-                bulkPrintCaseIds = [];
-                return;
-            }
+            ))
+            .then(casesData => {
+                bulkActions.innerHTML = originalHTML;
 
-            // Generate bulk print HTML
-            const printContent = generateBulkPrintHTML(validCases, selectedFields, printLayout);
+                // Filter out any failed fetches
+                const validCases = casesData.filter(c => c !== null);
 
-            // Create or update print container
-            let printContainer = document.getElementById('printContent');
-            if (!printContainer) {
-                printContainer = document.createElement('div');
-                printContainer.id = 'printContent';
-                document.body.appendChild(printContainer);
-            }
-
-            printContainer.innerHTML = printContent;
-
-            // Add dual-page class to body if needed
-            if (printLayout === 'dual') {
-                document.body.classList.add('dual-page-print');
-            } else {
-                document.body.classList.remove('dual-page-print');
-            }
-
-            // Small delay to ensure rendering
-            setTimeout(() => {
-                window.print();
-                // Clean up after printing
-                setTimeout(() => {
-                    document.body.classList.remove('dual-page-print');
-                    if (printContainer) {
-                        printContainer.innerHTML = '';
-                    }
-                    // Reset bulk print mode
+                if (validCases.length === 0) {
+                    alert('Failed to load case data');
                     bulkPrintMode = false;
                     bulkPrintCaseIds = [];
-                }, 1000);
-            }, 100);
-        })
-        .catch(error => {
-            bulkActions.innerHTML = originalHTML;
-            console.error('Error loading cases:', error);
-            alert('Error loading cases for printing: ' + error.message);
-            bulkPrintMode = false;
-            bulkPrintCaseIds = [];
-        });
+                    return;
+                }
+
+                // Generate bulk print HTML
+                const printContent = generateBulkPrintHTML(validCases, selectedFields, printLayout);
+
+                // Create or update print container
+                let printContainer = document.getElementById('printContent');
+                if (!printContainer) {
+                    printContainer = document.createElement('div');
+                    printContainer.id = 'printContent';
+                    document.body.appendChild(printContainer);
+                }
+
+                printContainer.innerHTML = printContent;
+
+                // Add dual-page class to body if needed
+                if (printLayout === 'dual') {
+                    document.body.classList.add('dual-page-print');
+                } else {
+                    document.body.classList.remove('dual-page-print');
+                }
+
+                // Small delay to ensure rendering
+                setTimeout(() => {
+                    window.print();
+                    // Clean up after printing
+                    setTimeout(() => {
+                        document.body.classList.remove('dual-page-print');
+                        if (printContainer) {
+                            printContainer.innerHTML = '';
+                        }
+                        // Reset bulk print mode
+                        bulkPrintMode = false;
+                        bulkPrintCaseIds = [];
+                    }, 1000);
+                }, 100);
+            })
+            .catch(error => {
+                bulkActions.innerHTML = originalHTML;
+                console.error('Error loading cases:', error);
+                alert('Error loading cases for printing: ' + error.message);
+                bulkPrintMode = false;
+                bulkPrintCaseIds = [];
+            });
     }
 
     function generateBulkPrintHTML(casesData, selectedFields, printLayout) {
@@ -1093,25 +1093,68 @@ if ($result) {
         };
 
         // Define all columns (same structure as single print)
-        const allColumns = [
-            { key: 'case_previous', header: 'Case Number / Previous Date' },
-            { key: 'info_register', header: 'Information Book / Register Number' },
-            { key: 'date_produce_b_report', header: 'Date of Produce B Report' },
-            { key: 'date_produce_plant', header: 'Date of Produce Plant' },
-            { key: 'offence', header: 'Offence' },
-            { key: 'attorney_general_advice', header: "Attorney General's Advice" },
-            { key: 'production_handover', header: 'Production Register Number / Date of Hand Over to Court' },
-            { key: 'government_analyst', header: "Government Analyst's Report", hasSubColumns: true,
-                subColumns: [
-                    { key: 'receival_memorandum', header: 'Receival Memorandum' },
-                    { key: 'analyst_report', header: "Analyst's Report" }
+        const allColumns = [{
+                key: 'case_previous',
+                header: 'Case Number / Previous Date'
+            },
+            {
+                key: 'info_register',
+                header: 'Information Book / Register Number'
+            },
+            {
+                key: 'date_produce_b_report',
+                header: 'Date of Produce B Report'
+            },
+            {
+                key: 'date_produce_plant',
+                header: 'Date of Produce Plant'
+            },
+            {
+                key: 'offence',
+                header: 'Offence'
+            },
+            {
+                key: 'attorney_general_advice',
+                header: "Attorney General's Advice"
+            },
+            {
+                key: 'production_handover',
+                header: 'Production Register Number / Date of Hand Over to Court'
+            },
+            {
+                key: 'government_analyst',
+                header: "Government Analyst's Report",
+                hasSubColumns: true,
+                subColumns: [{
+                        key: 'receival_memorandum',
+                        header: 'Receival Memorandum'
+                    },
+                    {
+                        key: 'analyst_report',
+                        header: "Analyst's Report"
+                    }
                 ]
             },
-            { key: 'suspects', header: 'Suspect Name, Address, NIC Number' },
-            { key: 'witnesses', header: 'Witness Name, Address, NIC Number' },
-            { key: 'progress', header: 'Progress' },
-            { key: 'results', header: 'Results' },
-            { key: 'next_date', header: 'Next Date' }
+            {
+                key: 'suspects',
+                header: 'Suspect Name, Address, NIC Number'
+            },
+            {
+                key: 'witnesses',
+                header: 'Witness Name, Address, NIC Number'
+            },
+            {
+                key: 'progress',
+                header: 'Progress'
+            },
+            {
+                key: 'results',
+                header: 'Results'
+            },
+            {
+                key: 'next_date',
+                header: 'Next Date'
+            }
         ];
 
         if (printLayout === 'dual') {
@@ -1172,7 +1215,7 @@ if ($result) {
         casesData.forEach(caseInfo => {
             const caseData = caseInfo.caseData;
             html += '<tr>';
-            
+
             page1Columns.forEach(col => {
                 if (col.hasSubColumns) {
                     col.subColumns.forEach(subCol => {
@@ -1184,7 +1227,7 @@ if ($result) {
                     html += `<td style="border: 2px solid #000; padding: 5px 4px; vertical-align: top; text-align: left; line-height: 1.4; font-size: 16px; color: #000; word-wrap: break-word; overflow-wrap: break-word;">${value}</td>`;
                 }
             });
-            
+
             html += '</tr>';
         });
 
@@ -1219,7 +1262,7 @@ if ($result) {
         casesData.forEach(caseInfo => {
             const caseData = caseInfo.caseData;
             html += '<tr>';
-            
+
             page2Columns.forEach(col => {
                 if (col.hasSubColumns) {
                     col.subColumns.forEach(subCol => {
@@ -1231,7 +1274,7 @@ if ($result) {
                     html += `<td style="border: 2px solid #000; padding: 5px 4px; vertical-align: top; text-align: left; line-height: 1.4; font-size: 16px; color: #000; word-wrap: break-word; overflow-wrap: break-word;">${value}</td>`;
                 }
             });
-            
+
             html += '</tr>';
         });
 
@@ -1242,7 +1285,7 @@ if ($result) {
     }
 
     function getColumnValue(caseData, key, formatDate) {
-        switch(key) {
+        switch (key) {
             case 'case_previous':
                 let val = '';
                 if (caseData.case_number) val += caseData.case_number;
@@ -1251,7 +1294,7 @@ if ($result) {
                     val += formatDate(caseData.previous_date);
                 }
                 return val;
-            
+
             case 'info_register':
                 let val2 = '';
                 if (caseData.information_book) val2 += caseData.information_book;
@@ -1260,19 +1303,19 @@ if ($result) {
                     val2 += caseData.register_number;
                 }
                 return val2;
-            
+
             case 'date_produce_b_report':
                 return formatDate(caseData.date_produce_b_report);
-            
+
             case 'date_produce_plant':
                 return formatDate(caseData.date_produce_plant);
-            
+
             case 'offence':
                 return caseData.opens ? caseData.opens.replace(/\n/g, '<br>') : '';
-            
+
             case 'attorney_general_advice':
                 return caseData.attorney_general_advice || '';
-            
+
             case 'production_handover':
                 let val3 = '';
                 if (caseData.production_register_number) {
@@ -1283,13 +1326,13 @@ if ($result) {
                     val3 += formatDate(caseData.date_handover_court);
                 }
                 return val3;
-            
+
             case 'receival_memorandum':
                 return caseData.receival_memorandum || '';
-            
+
             case 'analyst_report':
                 return caseData.analyst_report || '';
-            
+
             case 'suspects':
                 const suspects = JSON.parse(caseData.suspect_data || '[]');
                 if (suspects.length === 0) return '';
@@ -1299,7 +1342,7 @@ if ($result) {
                     text += `${index + 1}. ${suspect.name || ''}<br>${suspect.address || ''}<br>NIC ${suspect.ic || ''}`;
                 });
                 return text;
-            
+
             case 'witnesses':
                 const witnesses = JSON.parse(caseData.witness_data || '[]');
                 if (witnesses.length === 0) return '';
@@ -1309,16 +1352,16 @@ if ($result) {
                     text2 += `${index + 1}. ${witness.name || ''}<br>${witness.address || ''}<br>NIC ${witness.ic || ''}`;
                 });
                 return text2;
-            
+
             case 'progress':
                 return caseData.progress ? caseData.progress.replace(/\n/g, '<br>') : '';
-            
+
             case 'results':
                 return caseData.results ? caseData.results.replace(/\n/g, '<br>') : '';
-            
+
             case 'next_date':
                 return formatDate(caseData.next_date);
-            
+
             default:
                 return '';
         }
@@ -1354,7 +1397,7 @@ if ($result) {
         casesData.forEach(caseInfo => {
             const caseData = caseInfo.caseData;
             htmlContent += '<tr>';
-            
+
             columns.forEach(col => {
                 if (col.hasSubColumns) {
                     col.subColumns.forEach(subCol => {
@@ -1366,7 +1409,7 @@ if ($result) {
                     htmlContent += `<td style="border: 1px solid #000; padding: 6px 4px; vertical-align: top; text-align: left; line-height: 1.4;">${value}</td>`;
                 }
             });
-            
+
             htmlContent += '</tr>';
         });
 
@@ -1730,7 +1773,7 @@ if ($result) {
         const checkboxes = document.querySelectorAll('.case-checkbox:checked');
         const bulkActions = document.getElementById('bulkActions');
         const selectedCount = document.getElementById('selectedCount');
-        
+
         if (checkboxes.length > 0) {
             bulkActions.style.display = 'flex';
             selectedCount.textContent = checkboxes.length + ' selected';
@@ -1754,7 +1797,7 @@ if ($result) {
 
     window.bulkPrintCases = function() {
         const selectedCheckboxes = document.querySelectorAll('.case-checkbox:checked');
-        
+
         if (selectedCheckboxes.length === 0) {
             alert('Please select at least one case to print');
             return;
@@ -1763,15 +1806,17 @@ if ($result) {
         // Store selected IDs for bulk print
         bulkPrintCaseIds = Array.from(selectedCheckboxes).map(cb => cb.value);
         bulkPrintMode = true;
-        
+
         // Set bulk print info in modal
-        currentPrintCaseData = { case_number: `${bulkPrintCaseIds.length} Cases Selected` };
+        currentPrintCaseData = {
+            case_number: `${bulkPrintCaseIds.length} Cases Selected`
+        };
         currentPrintHistory = [];
-        
+
         // Open print modal for column selection
         const printModal = document.getElementById('printCaseModal');
         printModal.style.display = 'block';
-        
+
         // Auto-select all fields for bulk print
         window.selectAllPrintFields();
     }
