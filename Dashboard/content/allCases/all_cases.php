@@ -990,6 +990,20 @@ if ($result) {
             // Small delay to ensure rendering
             setTimeout(() => {
                 window.print();
+
+                // Log print activity
+                fetch('content/allCases/log_print.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        case_id: currentPrintCaseData.id,
+                        case_number: currentPrintCaseData.case_number,
+                        print_type: 'single'
+                    })
+                }).catch(err => console.error('Failed to log print activity:', err));
+
                 // Clean up after printing
                 setTimeout(() => {
                     document.body.classList.remove('dual-page-print');
@@ -1060,6 +1074,21 @@ if ($result) {
                 // Small delay to ensure rendering
                 setTimeout(() => {
                     window.print();
+
+                    // Log bulk print activity
+                    const caseNumbers = validCases.map(c => c.case_number).join(', ');
+                    fetch('content/allCases/log_print.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            case_id: validCases[0]?.id,
+                            case_number: caseNumbers,
+                            print_type: 'bulk'
+                        })
+                    }).catch(err => console.error('Failed to log print activity:', err));
+
                     // Clean up after printing
                     setTimeout(() => {
                         document.body.classList.remove('dual-page-print');
@@ -1658,7 +1687,7 @@ if ($result) {
 
         // Generate Page 1
         html += `
-        <div class="page-1" style="font-family: 'Arial', sans-serif; padding: 5mm; width: 100%; box-sizing: border-box;">
+        <div class="page-1" style="font-family: 'Arial', sans-serif; width: 100%; box-sizing: border-box; margin: 0; padding: 0;">
             <div style="text-align: center; margin-bottom: 8px;">
                 <h1 style="color: #000; margin: 0; font-size: 18px; font-weight: bold;">POLICE CASE MANAGEMENT</h1>
                 <p style="color: #000; font-size: 11px; margin: 3px 0;">Case: ${caseData.case_number || 'N/A'} | ${new Date().toLocaleString('en-GB')}</p>
@@ -1715,7 +1744,7 @@ if ($result) {
 
         // Generate Page 2
         html += `
-        <div class="page-2" style="font-family: 'Arial', sans-serif; padding: 5mm; width: 100%; box-sizing: border-box;">
+        <div class="page-2" style="font-family: 'Arial', sans-serif; width: 100%; box-sizing: border-box; margin: 0; padding: 0;">
             <div style="text-align: center; margin-bottom: 8px;">
                 <h1 style="color: #000; margin: 0; font-size: 18px; font-weight: bold;">POLICE CASE MANAGEMENT</h1>
                 <p style="color: #000; font-size: 11px; margin: 3px 0;">Case: ${caseData.case_number || 'N/A'} | ${new Date().toLocaleString('en-GB')}</p>

@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once('../../../config/db.php');
+require_once('../../../config/activity_logger.php');
 
 header('Content-Type: application/json');
 
@@ -186,6 +187,15 @@ try {
         'suspect_data' => $suspect_json,
         'witness_data' => $witness_json
     ];
+
+    // Log activity
+    logActivity(
+        $conn,
+        'case_edited',
+        "Edited case: $case_number",
+        $case_id,
+        $case_number
+    );
 
     echo json_encode([
         'success' => true,

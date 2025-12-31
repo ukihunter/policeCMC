@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once('../../../config/db.php');
+require_once('../../../config/activity_logger.php');
 
 // Check if user is logged in
 if (!isset($_SESSION["user_id"])) {
@@ -152,10 +153,21 @@ $stmt->bind_param(
 
 // Execute the statement
 if ($stmt->execute()) {
+    $case_id = $stmt->insert_id;
+
+    // Log activity
+    logActivity(
+        $conn,
+        'case_added',
+        "Added new case: $case_number",
+        $case_id,
+        $case_number
+    );
+
     echo json_encode([
         'success' => true,
         'message' => 'Case successfully added with Case Number: ' . $case_number,
-        'case_id' => $stmt->insert_id
+        'case_id' => $case_id
     ]);
 } else {
     echo json_encode(['success' => false, 'message' => 'Error adding case: ' . $stmt->error]);

@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once "../config/db.php";
+require_once "../config/activity_logger.php";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -26,6 +27,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION["full_name"] = $user["full_name"];
                 $_SESSION["position"] = $user["position"];
                 $_SESSION["rank_title"] = $user["rank_title"];
+                $_SESSION["role"] = $user["role"] ?? 'user';
+
+                // Log successful login
+                logActivity(
+                    $conn,
+                    'login',
+                    "User logged in successfully"
+                );
 
                 header("Location: ../Dashboard/dashboard.php");
                 exit;

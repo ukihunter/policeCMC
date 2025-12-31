@@ -426,6 +426,18 @@
 
     /* Print Styles */
     @media print {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100%;
+        }
+
         body * {
             visibility: hidden;
         }
@@ -437,6 +449,8 @@
             left: 0;
             top: 0;
             width: 100%;
+            margin: 0 !important;
+            padding: 0 !important;
         }
 
         #printContent * {
@@ -451,15 +465,23 @@
 
         /* Dual Page Layout - Legal Landscape Full Width */
         body.dual-page-print {
-            margin: 0;
+            margin: 0 !important;
+            padding: 0 !important;
         }
 
+        body.dual-page-print #printContent {
+            width: 100%;
+            max-width: none;
+        }
 
         body.dual-page-print #printContent .page-1,
         body.dual-page-print #printContent .page-2 {
             page-break-after: always;
             width: 100%;
             max-width: 100%;
+            margin: 0;
+            padding: 5mm;
+            box-sizing: border-box;
         }
 
         body.dual-page-print #printContent .page-2 {
@@ -468,13 +490,29 @@
 
         body.dual-page-print #printContent table {
             width: 100% !important;
-            table-layout: fixed;
+            max-width: 100% !important;
+            table-layout: fixed !important;
+            border-collapse: collapse !important;
         }
 
         body.dual-page-print #printContent th,
         body.dual-page-print #printContent td {
             word-wrap: break-word;
             overflow-wrap: break-word;
+        }
+
+        /* Single page print styles */
+        body:not(.dual-page-print) #printContent {
+            width: 100%;
+            max-width: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        body:not(.dual-page-print) #printContent table {
+            width: 100% !important;
+            max-width: 100% !important;
+            table-layout: fixed !important;
         }
     }
 </style>

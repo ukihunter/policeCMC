@@ -5,6 +5,18 @@ if (!isset($_SESSION["user_id"])) {
     header("Location: index.html");
     exit;
 }
+
+// Get user role
+require_once __DIR__ . '/../config/db.php';
+$user_id = $_SESSION["user_id"];
+$sql = "SELECT role FROM users WHERE id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
+$is_admin = ($user['role'] === 'admin');
+$stmt->close();
 ?>
 
 <!DOCTYPE html>
@@ -19,6 +31,7 @@ if (!isset($_SESSION["user_id"])) {
     <link rel="stylesheet" href="css/notifications.css">
     <link rel="stylesheet" href="content/addCase/css/add_case.css">
     <link rel="stylesheet" href="content/allCases/css/all_cases.css">
+    <link rel="stylesheet" href="content/users/css/users.css">
     <script src="js/notifications.js"></script>
 </head>
 
@@ -76,15 +89,17 @@ if (!isset($_SESSION["user_id"])) {
                     </li>
                 </ul>
 
-                <div class="nav-section-title" style="margin-top: 20px;">Admin</div>
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a class="nav-link" onclick="switchTab('users')">
-                            <i class="fas fa-users"></i>
-                            <span>Users</span>
-                        </a>
-                    </li>
-                </ul>
+                <?php if ($is_admin): ?>
+                    <div class="nav-section-title" style="margin-top: 20px;">Admin</div>
+                    <ul class="nav-menu">
+                        <li class="nav-item">
+                            <a class="nav-link" onclick="switchTab('users')">
+                                <i class="fas fa-users"></i>
+                                <span>Users</span>
+                            </a>
+                        </li>
+                    </ul>
+                <?php endif; ?>
             </nav>
 
             <div class="sidebar-footer">
@@ -286,8 +301,7 @@ if (!isset($_SESSION["user_id"])) {
 
             <!-- Users Tab -->
             <div id="users" class="tab-content">
-                <h2><i class="fas fa-users"></i> Users</h2>
-                <p>Manage system users and their permissions.</p>
+                <?php include 'content/users/users_management.php'; ?>
             </div>
         </main>
     </div>
