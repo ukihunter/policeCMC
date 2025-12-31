@@ -38,6 +38,15 @@ if ($result) {
 
 <div class="cases-header">
     <h2><i class="fas fa-folder-open"></i> All Cases</h2>
+    <div class="bulk-actions" id="bulkActions" style="display: none;">
+        <span class="selected-count" id="selectedCount">0 selected</span>
+        <button class="btn-bulk-print" onclick="bulkPrintCases()">
+            <i class="fas fa-print"></i> Print Selected Cases
+        </button>
+        <button class="btn-bulk-clear" onclick="clearSelection()">
+            <i class="fas fa-times"></i> Clear Selection
+        </button>
+    </div>
     <div class="header-actions">
         <div class="filter-section">
             <!-- Row 1: Text Search -->
@@ -169,6 +178,9 @@ if ($result) {
         <table class="cases-table" id="casesTable">
             <thead>
                 <tr>
+                    <th style="width: 40px;">
+                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" title="Select All">
+                    </th>
                     <th>Case No / Previous Date</th>
                     <th>Information Book / Register</th>
                     <th>offense</th>
@@ -182,14 +194,21 @@ if ($result) {
             </thead>
             <tbody>
                 <?php foreach ($cases as $case): ?>
-                    <tr data-case-number="<?php echo htmlspecialchars($case['case_number']); ?>"
+                    <tr data-case-id="<?php echo $case['id']; ?>"
+                        data-case-number="<?php echo htmlspecialchars($case['case_number']); ?>"
                         data-register="<?php echo htmlspecialchars($case['register_number']); ?>"
                         data-info-book="<?php echo htmlspecialchars($case['information_book']); ?>"
                         data-prev-date="<?php echo $case['previous_date'] ?? ''; ?>"
+                        data-b-report-date="<?php echo $case['date_produce_b_report'] ?? ''; ?>"
+                        data-plant-date="<?php echo $case['date_produce_plant'] ?? ''; ?>"
                         data-handover-date="<?php echo $case['date_handover_court'] ?? ''; ?>"
                         data-next-date="<?php echo $case['next_date'] ?? ''; ?>"
                         data-attorney-advice="<?php echo $case['attorney_general_advice'] ?? ''; ?>"
                         data-analyst-report="<?php echo $case['analyst_report'] ?? ''; ?>">
+                        <!-- Checkbox -->
+                        <td>
+                            <input type="checkbox" class="case-checkbox" value="<?php echo $case['id']; ?>" onchange="updateBulkActions()">
+                        </td>
                         <!-- Case Number and Previous Date -->
                         <td>
                             <div class="case-main">
@@ -335,6 +354,8 @@ if ($result) {
     // Global variables for print modal
     var currentPrintCaseData = null;
     var currentPrintHistory = null;
+    var bulkPrintMode = false;
+    var bulkPrintCaseIds = [];
 
     // Load specific page
     window.loadPage = function(pageNumber) {
@@ -939,40 +960,427 @@ if ($result) {
         const printLayout = document.querySelector('input[name="printLayout"]:checked').value;
         console.log('Print layout:', printLayout);
 
-        const printContent = window.generatePrintHTML(currentPrintCaseData, currentPrintHistory, selectedFields, printLayout);
-
-        // Create or update print container
-        let printContainer = document.getElementById('printContent');
-        if (!printContainer) {
-            printContainer = document.createElement('div');
-            printContainer.id = 'printContent';
-            document.body.appendChild(printContainer);
-        }
-
-        printContainer.innerHTML = printContent;
-
-        // Add dual-page class to body if needed
-        if (printLayout === 'dual') {
-            document.body.classList.add('dual-page-print');
-        } else {
-            document.body.classList.remove('dual-page-print');
-        }
-
-        // Close modal and print
+        // Close modal
         window.closePrintModal();
 
-        // Small delay to ensure rendering
-        setTimeout(() => {
-            window.print();
-            // Clean up after printing
-            setTimeout(() => {
+        if (bulkPrintMode) {
+            // Handle bulk print
+            generateBulkPrint(selectedFields, printLayout);
+        } else {
+            // Handle single case print
+            const printContent = window.generatePrintHTML(currentPrintCaseData, currentPrintHistory, selectedFields, printLayout);
+
+            // Create or update print container
+            let printContainer = document.getElementById('printContent');
+            if (!printContainer) {
+                printContainer = document.createElement('div');
+                printContainer.id = 'printContent';
+                document.body.appendChild(printContainer);
+            }
+
+            printContainer.innerHTML = printContent;
+
+            // Add dual-page class to body if needed
+            if (printLayout === 'dual') {
+                document.body.classList.add('dual-page-print');
+            } else {
                 document.body.classList.remove('dual-page-print');
-                // Remove print content from DOM
-                if (printContainer) {
-                    printContainer.innerHTML = '';
+            }
+
+            // Small delay to ensure rendering
+            setTimeout(() => {
+                window.print();
+                // Clean up after printing
+                setTimeout(() => {
+                    document.body.classList.remove('dual-page-print');
+                    // Remove print content from DOM
+                    if (printContainer) {
+                        printContainer.innerHTML = '';
+                    }
+                }, 1000);
+            }, 100);
+        }
+    }
+
+    function generateBulkPrint(selectedFields, printLayout) {
+        // Show loading message
+        const bulkActions = document.getElementById('bulkActions');
+        const originalHTML = bulkActions.innerHTML;
+        bulkActions.innerHTML = '<span style="color: #4a9eff;"><i class="fas fa-spinner fa-spin"></i> Loading cases...</span>';
+
+        // Fetch all selected cases data
+        Promise.all(bulkPrintCaseIds.map(id => 
+            fetch('content/allCases/get_case_details.php?id=' + id)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        return fetch('content/allCases/get_next_date_history.php?case_id=' + id)
+                            .then(historyResponse => historyResponse.json())
+                            .then(historyData => ({
+                                caseData: data.case,
+                                history: historyData.success ? historyData.history : []
+                            }));
+                    }
+                    return null;
+                })
+        ))
+        .then(casesData => {
+            bulkActions.innerHTML = originalHTML;
+            
+            // Filter out any failed fetches
+            const validCases = casesData.filter(c => c !== null);
+            
+            if (validCases.length === 0) {
+                alert('Failed to load case data');
+                bulkPrintMode = false;
+                bulkPrintCaseIds = [];
+                return;
+            }
+
+            // Generate bulk print HTML
+            const printContent = generateBulkPrintHTML(validCases, selectedFields, printLayout);
+
+            // Create or update print container
+            let printContainer = document.getElementById('printContent');
+            if (!printContainer) {
+                printContainer = document.createElement('div');
+                printContainer.id = 'printContent';
+                document.body.appendChild(printContainer);
+            }
+
+            printContainer.innerHTML = printContent;
+
+            // Add dual-page class to body if needed
+            if (printLayout === 'dual') {
+                document.body.classList.add('dual-page-print');
+            } else {
+                document.body.classList.remove('dual-page-print');
+            }
+
+            // Small delay to ensure rendering
+            setTimeout(() => {
+                window.print();
+                // Clean up after printing
+                setTimeout(() => {
+                    document.body.classList.remove('dual-page-print');
+                    if (printContainer) {
+                        printContainer.innerHTML = '';
+                    }
+                    // Reset bulk print mode
+                    bulkPrintMode = false;
+                    bulkPrintCaseIds = [];
+                }, 1000);
+            }, 100);
+        })
+        .catch(error => {
+            bulkActions.innerHTML = originalHTML;
+            console.error('Error loading cases:', error);
+            alert('Error loading cases for printing: ' + error.message);
+            bulkPrintMode = false;
+            bulkPrintCaseIds = [];
+        });
+    }
+
+    function generateBulkPrintHTML(casesData, selectedFields, printLayout) {
+        const formatDate = (dateString) => {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+        };
+
+        // Define all columns (same structure as single print)
+        const allColumns = [
+            { key: 'case_previous', header: 'Case Number / Previous Date' },
+            { key: 'info_register', header: 'Information Book / Register Number' },
+            { key: 'date_produce_b_report', header: 'Date of Produce B Report' },
+            { key: 'date_produce_plant', header: 'Date of Produce Plant' },
+            { key: 'offence', header: 'Offence' },
+            { key: 'attorney_general_advice', header: "Attorney General's Advice" },
+            { key: 'production_handover', header: 'Production Register Number / Date of Hand Over to Court' },
+            { key: 'government_analyst', header: "Government Analyst's Report", hasSubColumns: true,
+                subColumns: [
+                    { key: 'receival_memorandum', header: 'Receival Memorandum' },
+                    { key: 'analyst_report', header: "Analyst's Report" }
+                ]
+            },
+            { key: 'suspects', header: 'Suspect Name, Address, NIC Number' },
+            { key: 'witnesses', header: 'Witness Name, Address, NIC Number' },
+            { key: 'progress', header: 'Progress' },
+            { key: 'results', header: 'Results' },
+            { key: 'next_date', header: 'Next Date' }
+        ];
+
+        if (printLayout === 'dual') {
+            return generateBulkDualPageHTML(casesData, allColumns, formatDate);
+        } else {
+            return generateBulkSinglePageHTML(casesData, allColumns, formatDate);
+        }
+    }
+
+    function generateBulkDualPageHTML(casesData, columns, formatDate) {
+        const page1Columns = columns.slice(0, 7);
+        const page2Columns = columns.slice(7);
+
+        let html = '';
+
+        // Page 1 - Header only
+        html += `
+        <div class="page-1" style="font-family: 'Arial', sans-serif; padding: 5mm; width: 100%; box-sizing: border-box;">
+            <div style="text-align: center; margin-bottom: 8px;">
+                <h1 style="color: #000; margin: 0; font-size: 18px; font-weight: bold;">POLICE CASE MANAGEMENT</h1>
+                <p style="color: #000; font-size: 11px; margin: 3px 0;">${casesData.length} Cases | ${new Date().toLocaleString('en-GB')}</p>
+            </div>
+            
+            <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 16px; border: 2px solid #000;">
+                <thead>`;
+
+        // Page 1 Headers
+        let hasSubColumns1 = page1Columns.some(col => col.hasSubColumns);
+        if (hasSubColumns1) {
+            html += '<tr>';
+            page1Columns.forEach(col => {
+                if (col.hasSubColumns) {
+                    html += `<th colspan="${col.subColumns.length}" style="border: 2px solid #000; padding: 6px 4px; background: #fff; color: #000; font-weight: bold; text-align: center; vertical-align: middle; font-size: 16px; word-wrap: break-word;">${col.header}</th>`;
+                } else {
+                    html += `<th rowspan="2" style="border: 2px solid #000; padding: 6px 4px; background: #fff; color: #000; font-weight: bold; text-align: center; vertical-align: middle; font-size: 16px; word-wrap: break-word; width: ${100/9}%;">${col.header}</th>`;
                 }
-            }, 1000);
-        }, 100);
+            });
+            html += '</tr><tr>';
+            page1Columns.forEach(col => {
+                if (col.hasSubColumns) {
+                    col.subColumns.forEach(subCol => {
+                        html += `<th style="border: 2px solid #000; padding: 5px 3px; background: #fff; color: #000; font-weight: bold; text-align: center; vertical-align: middle; font-size: 16px; word-wrap: break-word; width: ${100/9}%;">${subCol.header}</th>`;
+                    });
+                }
+            });
+            html += '</tr>';
+        } else {
+            html += '<tr>';
+            page1Columns.forEach(col => {
+                html += `<th style="border: 2px solid #000; padding: 6px 4px; background: #fff; color: #000; font-weight: bold; text-align: center; vertical-align: middle; font-size: 16px; word-wrap: break-word; width: ${100/page1Columns.length}%;">${col.header}</th>`;
+            });
+            html += '</tr>';
+        }
+
+        html += `</thead><tbody>`;
+
+        // Add all cases to Page 1
+        casesData.forEach(caseInfo => {
+            const caseData = caseInfo.caseData;
+            html += '<tr>';
+            
+            page1Columns.forEach(col => {
+                if (col.hasSubColumns) {
+                    col.subColumns.forEach(subCol => {
+                        const value = getColumnValue(caseData, subCol.key, formatDate);
+                        html += `<td style="border: 2px solid #000; padding: 5px 4px; vertical-align: top; text-align: left; line-height: 1.4; font-size: 16px; color: #000; word-wrap: break-word; overflow-wrap: break-word;">${value}</td>`;
+                    });
+                } else {
+                    const value = getColumnValue(caseData, col.key, formatDate);
+                    html += `<td style="border: 2px solid #000; padding: 5px 4px; vertical-align: top; text-align: left; line-height: 1.4; font-size: 16px; color: #000; word-wrap: break-word; overflow-wrap: break-word;">${value}</td>`;
+                }
+            });
+            
+            html += '</tr>';
+        });
+
+        html += `</tbody></table>
+        </div>`;
+
+        // Page 2 - Header and all cases
+        html += `
+        <div class="page-2" style="font-family: 'Arial', sans-serif; padding: 5mm; width: 100%; box-sizing: border-box;">
+            <div style="text-align: center; margin-bottom: 8px;">
+                <h1 style="color: #000; margin: 0; font-size: 18px; font-weight: bold;">POLICE CASE MANAGEMENT</h1>
+                <p style="color: #000; font-size: 11px; margin: 3px 0;">${casesData.length} Cases | ${new Date().toLocaleString('en-GB')}</p>
+            </div>
+            
+            <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 16px; border: 2px solid #000;">
+                <thead>`;
+
+        // Page 2 Headers
+        html += '<tr>';
+        page2Columns.forEach(col => {
+            if (col.hasSubColumns) {
+                html += `<th colspan="${col.subColumns.length}" style="border: 2px solid #000; padding: 6px 4px; background: #fff; color: #000; font-weight: bold; text-align: center; vertical-align: middle; font-size: 16px; word-wrap: break-word; width: ${100/page2Columns.length}%;">${col.header}</th>`;
+            } else {
+                html += `<th style="border: 2px solid #000; padding: 6px 4px; background: #fff; color: #000; font-weight: bold; text-align: center; vertical-align: middle; font-size: 16px; word-wrap: break-word; width: ${100/page2Columns.length}%;">${col.header}</th>`;
+            }
+        });
+        html += '</tr>';
+
+        html += `</thead><tbody>`;
+
+        // Add all cases to Page 2
+        casesData.forEach(caseInfo => {
+            const caseData = caseInfo.caseData;
+            html += '<tr>';
+            
+            page2Columns.forEach(col => {
+                if (col.hasSubColumns) {
+                    col.subColumns.forEach(subCol => {
+                        const value = getColumnValue(caseData, subCol.key, formatDate);
+                        html += `<td style="border: 2px solid #000; padding: 5px 4px; vertical-align: top; text-align: left; line-height: 1.4; font-size: 16px; color: #000; word-wrap: break-word; overflow-wrap: break-word;">${value}</td>`;
+                    });
+                } else {
+                    const value = getColumnValue(caseData, col.key, formatDate);
+                    html += `<td style="border: 2px solid #000; padding: 5px 4px; vertical-align: top; text-align: left; line-height: 1.4; font-size: 16px; color: #000; word-wrap: break-word; overflow-wrap: break-word;">${value}</td>`;
+                }
+            });
+            
+            html += '</tr>';
+        });
+
+        html += `</tbody></table>
+        </div>`;
+
+        return html;
+    }
+
+    function getColumnValue(caseData, key, formatDate) {
+        switch(key) {
+            case 'case_previous':
+                let val = '';
+                if (caseData.case_number) val += caseData.case_number;
+                if (caseData.previous_date) {
+                    if (val) val += '<br>';
+                    val += formatDate(caseData.previous_date);
+                }
+                return val;
+            
+            case 'info_register':
+                let val2 = '';
+                if (caseData.information_book) val2 += caseData.information_book;
+                if (caseData.register_number) {
+                    if (val2) val2 += '<br>';
+                    val2 += caseData.register_number;
+                }
+                return val2;
+            
+            case 'date_produce_b_report':
+                return formatDate(caseData.date_produce_b_report);
+            
+            case 'date_produce_plant':
+                return formatDate(caseData.date_produce_plant);
+            
+            case 'offence':
+                return caseData.opens ? caseData.opens.replace(/\n/g, '<br>') : '';
+            
+            case 'attorney_general_advice':
+                return caseData.attorney_general_advice || '';
+            
+            case 'production_handover':
+                let val3 = '';
+                if (caseData.production_register_number) {
+                    val3 += caseData.production_register_number.replace(/\n/g, '<br>');
+                }
+                if (caseData.date_handover_court) {
+                    if (val3) val3 += '<br>';
+                    val3 += formatDate(caseData.date_handover_court);
+                }
+                return val3;
+            
+            case 'receival_memorandum':
+                return caseData.receival_memorandum || '';
+            
+            case 'analyst_report':
+                return caseData.analyst_report || '';
+            
+            case 'suspects':
+                const suspects = JSON.parse(caseData.suspect_data || '[]');
+                if (suspects.length === 0) return '';
+                let text = '';
+                suspects.forEach((suspect, index) => {
+                    if (index > 0) text += '<br><br>';
+                    text += `${index + 1}. ${suspect.name || ''}<br>${suspect.address || ''}<br>NIC ${suspect.ic || ''}`;
+                });
+                return text;
+            
+            case 'witnesses':
+                const witnesses = JSON.parse(caseData.witness_data || '[]');
+                if (witnesses.length === 0) return '';
+                let text2 = '';
+                witnesses.forEach((witness, index) => {
+                    if (index > 0) text2 += '<br><br>';
+                    text2 += `${index + 1}. ${witness.name || ''}<br>${witness.address || ''}<br>NIC ${witness.ic || ''}`;
+                });
+                return text2;
+            
+            case 'progress':
+                return caseData.progress ? caseData.progress.replace(/\n/g, '<br>') : '';
+            
+            case 'results':
+                return caseData.results ? caseData.results.replace(/\n/g, '<br>') : '';
+            
+            case 'next_date':
+                return formatDate(caseData.next_date);
+            
+            default:
+                return '';
+        }
+    }
+
+    function generateBulkSinglePageHTML(casesData, columns, formatDate) {
+        // Similar to single page but with multiple rows
+        let htmlContent = `
+        <div style="font-family: 'Arial', sans-serif; padding: 10px;">
+            <div style="text-align: center; margin-bottom: 15px;">
+                <h1 style="color: #000; margin: 0; font-size: 16px; font-weight: bold;">POLICE CASE MANAGEMENT SYSTEM - ${casesData.length} Cases Report</h1>
+                <p style="color: #333; font-size: 9px; margin: 5px 0;">Generated on: ${new Date().toLocaleString('en-GB')}</p>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; font-size: 9px; border: 1px solid #000;">
+                <thead>
+                    <tr>`;
+
+        // Add headers
+        columns.forEach(col => {
+            if (col.hasSubColumns) {
+                htmlContent += `<th colspan="${col.subColumns.length}" style="border: 1px solid #000; padding: 8px 4px; background: #000; color: #fff; font-weight: bold; text-align: center;">${col.header}</th>`;
+            } else {
+                htmlContent += `<th style="border: 1px solid #000; padding: 8px 4px; background: #000; color: #fff; font-weight: bold; text-align: center;">${col.header}</th>`;
+            }
+        });
+
+        htmlContent += `</tr>
+                </thead>
+                <tbody>`;
+
+        // Add all cases
+        casesData.forEach(caseInfo => {
+            const caseData = caseInfo.caseData;
+            htmlContent += '<tr>';
+            
+            columns.forEach(col => {
+                if (col.hasSubColumns) {
+                    col.subColumns.forEach(subCol => {
+                        const value = getColumnValue(caseData, subCol.key, formatDate);
+                        htmlContent += `<td style="border: 1px solid #000; padding: 6px 4px; vertical-align: top; text-align: left; line-height: 1.4;">${value}</td>`;
+                    });
+                } else {
+                    const value = getColumnValue(caseData, col.key, formatDate);
+                    htmlContent += `<td style="border: 1px solid #000; padding: 6px 4px; vertical-align: top; text-align: left; line-height: 1.4;">${value}</td>`;
+                }
+            });
+            
+            htmlContent += '</tr>';
+        });
+
+        htmlContent += `
+                </tbody>
+            </table>
+            
+            <div style="margin-top: 15px; text-align: center; font-size: 8px; color: #333;">
+                <p style="margin: 2px 0;">This document is an official record from the Police Case Management System - Generated automatically</p>
+            </div>
+        </div>
+        `;
+
+        return htmlContent;
     }
 
     window.generatePrintHTML = function(caseData, history, selectedFields, printLayout = 'single') {
@@ -1304,6 +1712,68 @@ if ($result) {
         </div>`;
 
         return html;
+    }
+
+    // Bulk Print Functions
+    window.toggleSelectAll = function() {
+        const selectAll = document.getElementById('selectAll');
+        const checkboxes = document.querySelectorAll('.case-checkbox');
+        checkboxes.forEach(checkbox => {
+            if (checkbox.closest('tr').style.display !== 'none') {
+                checkbox.checked = selectAll.checked;
+            }
+        });
+        updateBulkActions();
+    }
+
+    window.updateBulkActions = function() {
+        const checkboxes = document.querySelectorAll('.case-checkbox:checked');
+        const bulkActions = document.getElementById('bulkActions');
+        const selectedCount = document.getElementById('selectedCount');
+        
+        if (checkboxes.length > 0) {
+            bulkActions.style.display = 'flex';
+            selectedCount.textContent = checkboxes.length + ' selected';
+        } else {
+            bulkActions.style.display = 'none';
+        }
+
+        // Update select all checkbox state
+        const allCheckboxes = document.querySelectorAll('.case-checkbox');
+        const visibleCheckboxes = Array.from(allCheckboxes).filter(cb => cb.closest('tr').style.display !== 'none');
+        const selectAll = document.getElementById('selectAll');
+        selectAll.checked = visibleCheckboxes.length > 0 && visibleCheckboxes.every(cb => cb.checked);
+    }
+
+    window.clearSelection = function() {
+        const checkboxes = document.querySelectorAll('.case-checkbox');
+        checkboxes.forEach(checkbox => checkbox.checked = false);
+        document.getElementById('selectAll').checked = false;
+        updateBulkActions();
+    }
+
+    window.bulkPrintCases = function() {
+        const selectedCheckboxes = document.querySelectorAll('.case-checkbox:checked');
+        
+        if (selectedCheckboxes.length === 0) {
+            alert('Please select at least one case to print');
+            return;
+        }
+
+        // Store selected IDs for bulk print
+        bulkPrintCaseIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+        bulkPrintMode = true;
+        
+        // Set bulk print info in modal
+        currentPrintCaseData = { case_number: `${bulkPrintCaseIds.length} Cases Selected` };
+        currentPrintHistory = [];
+        
+        // Open print modal for column selection
+        const printModal = document.getElementById('printCaseModal');
+        printModal.style.display = 'block';
+        
+        // Auto-select all fields for bulk print
+        window.selectAllPrintFields();
     }
 
     // Close modal when clicking outside

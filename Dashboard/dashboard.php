@@ -345,8 +345,16 @@ if (!isset($_SESSION["user_id"])) {
             // Update URL hash without scrolling
             history.replaceState(null, null, '#' + tabName);
 
-            // Load content dynamically for specific tabs
+            // Auto-collapse sidebar when switching to All Cases tab
             if (tabName === 'cases') {
+                const sidebar = document.getElementById('sidebar');
+                const icon = document.getElementById('toggleIcon');
+                
+                if (!sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.add('collapsed');
+                    icon.className = 'fas fa-chevron-right';
+                }
+                
                 loadCasesContent();
             } else if (tabName === 'add-case') {
                 loadAddCaseContent();
