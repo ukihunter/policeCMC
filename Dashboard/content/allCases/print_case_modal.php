@@ -419,22 +419,28 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
+    /* Hide print content on screen */
+    #printContent {
+        display: none;
+    }
+
     /* Print Styles */
     @media print {
         body * {
             visibility: hidden;
         }
 
-        #printContent,
-        #printContent * {
-            visibility: visible;
-        }
-
         #printContent {
+            display: block !important;
+            visibility: visible;
             position: absolute;
             left: 0;
             top: 0;
             width: 100%;
+        }
+
+        #printContent * {
+            visibility: visible;
         }
 
         /* Single Page Layout - Legal Landscape */

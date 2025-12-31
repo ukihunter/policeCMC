@@ -967,6 +967,10 @@ if ($result) {
             // Clean up after printing
             setTimeout(() => {
                 document.body.classList.remove('dual-page-print');
+                // Remove print content from DOM
+                if (printContainer) {
+                    printContainer.innerHTML = '';
+                }
             }, 1000);
         }, 100);
     }
