@@ -116,6 +116,31 @@
                     </div>
                 </div>
 
+                <div class="print-layout-section">
+                    <h4><i class="fas fa-th-large"></i> Page Layout</h4>
+                    <p style="color: #666; font-size: 13px; margin-bottom: 15px;">
+                        Legal paper in landscape mode - columns split across 2 pages
+                    </p>
+                    <div class="layout-options">
+                        <label class="layout-radio">
+                            <input type="radio" name="printLayout" value="dual" checked>
+                            <div class="layout-card">
+                                <i class="fas fa-columns"></i>
+                                <span class="layout-title">Dual Page Legal Landscape</span>
+                                <span class="layout-desc">Split across 2 legal pages (full width columns)</span>
+                            </div>
+                        </label>
+                        <label class="layout-radio">
+                            <input type="radio" name="printLayout" value="single">
+                            <div class="layout-card">
+                                <i class="fas fa-file"></i>
+                                <span class="layout-title">Single Page</span>
+                                <span class="layout-desc">All columns compressed on one page</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="print-quick-select">
                     <button type="button" class="btn-quick-select" onclick="selectAllPrintFields()">
                         <i class="fas fa-check-double"></i> Select All
@@ -310,6 +335,90 @@
         transform: translateY(0);
     }
 
+    /* Print Layout Options */
+    .print-layout-section {
+        margin-bottom: 25px;
+        padding: 20px;
+        background: #f0f8ff;
+        border-radius: 8px;
+        border: 2px solid #4a9eff;
+    }
+
+    .print-layout-section h4 {
+        color: #0a1628;
+        font-size: 16px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .print-layout-section h4 i {
+        color: #4a9eff;
+    }
+
+    .layout-options {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .layout-radio {
+        cursor: pointer;
+    }
+
+    .layout-radio input[type="radio"] {
+        display: none;
+    }
+
+    .layout-card {
+        padding: 20px;
+        background: white;
+        border: 2px solid #ced4da;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        text-align: center;
+    }
+
+    .layout-card i {
+        font-size: 32px;
+        color: #6c757d;
+        transition: all 0.3s ease;
+    }
+
+    .layout-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #0a1628;
+    }
+
+    .layout-desc {
+        font-size: 12px;
+        color: #666;
+    }
+
+    .layout-radio input[type="radio"]:checked+.layout-card {
+        border-color: #4a9eff;
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        box-shadow: 0 4px 12px rgba(74, 158, 255, 0.3);
+    }
+
+    .layout-radio input[type="radio"]:checked+.layout-card i {
+        color: #4a9eff;
+        transform: scale(1.1);
+    }
+
+    .layout-card:hover {
+        border-color: #4a9eff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
     /* Print Styles */
     @media print {
         body * {
@@ -328,13 +437,38 @@
             width: 100%;
         }
 
+        /* Single Page Layout - Legal Landscape */
         @page {
-            size: A4 landscape;
-            margin: 10mm;
+            size: legal landscape;
+            margin: 5mm;
         }
 
-        body {
+        /* Dual Page Layout - Legal Landscape Full Width */
+        body.dual-page-print {
             margin: 0;
+        }
+
+
+        body.dual-page-print #printContent .page-1,
+        body.dual-page-print #printContent .page-2 {
+            page-break-after: always;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        body.dual-page-print #printContent .page-2 {
+            page-break-after: auto;
+        }
+
+        body.dual-page-print #printContent table {
+            width: 100% !important;
+            table-layout: fixed;
+        }
+
+        body.dual-page-print #printContent th,
+        body.dual-page-print #printContent td {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
     }
 </style>

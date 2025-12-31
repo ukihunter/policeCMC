@@ -935,7 +935,11 @@ if ($result) {
             return;
         }
 
-        const printContent = window.generatePrintHTML(currentPrintCaseData, currentPrintHistory, selectedFields);
+        // Get selected print layout
+        const printLayout = document.querySelector('input[name="printLayout"]:checked').value;
+        console.log('Print layout:', printLayout);
+
+        const printContent = window.generatePrintHTML(currentPrintCaseData, currentPrintHistory, selectedFields, printLayout);
 
         // Create or update print container
         let printContainer = document.getElementById('printContent');
@@ -947,16 +951,27 @@ if ($result) {
 
         printContainer.innerHTML = printContent;
 
+        // Add dual-page class to body if needed
+        if (printLayout === 'dual') {
+            document.body.classList.add('dual-page-print');
+        } else {
+            document.body.classList.remove('dual-page-print');
+        }
+
         // Close modal and print
         window.closePrintModal();
 
         // Small delay to ensure rendering
         setTimeout(() => {
             window.print();
+            // Clean up after printing
+            setTimeout(() => {
+                document.body.classList.remove('dual-page-print');
+            }, 1000);
         }, 100);
     }
 
-    window.generatePrintHTML = function(caseData, history, selectedFields) {
+    window.generatePrintHTML = function(caseData, history, selectedFields, printLayout = 'single') {
         const formatDate = (dateString) => {
             if (!dateString) return '';
             const date = new Date(dateString);
@@ -1090,6 +1105,14 @@ if ($result) {
             }
         ];
 
+        if (printLayout === 'dual') {
+            return generateDualPageHTML(caseData, columns, formatDate);
+        } else {
+            return generateSinglePageHTML(caseData, columns, formatDate);
+        }
+    }
+
+    function generateSinglePageHTML(caseData, columns, formatDate) {
         let htmlContent = `
         <div style="font-family: 'Arial', sans-serif; padding: 10px;">
             <div style="text-align: center; margin-bottom: 15px;">
@@ -1166,6 +1189,117 @@ if ($result) {
         `;
 
         return htmlContent;
+    }
+
+    function generateDualPageHTML(caseData, columns, formatDate) {
+        // Split columns into two groups for dual page printing
+        // Page 1: First 7 columns (including sub-columns count)
+        // Page 2: Remaining columns
+
+        const page1Columns = columns.slice(0, 7); // First 7 columns
+        const page2Columns = columns.slice(7); // Remaining columns
+
+        let html = '';
+
+        // Generate Page 1
+        html += `
+        <div class="page-1" style="font-family: 'Arial', sans-serif; padding: 5mm; width: 100%; box-sizing: border-box;">
+            <div style="text-align: center; margin-bottom: 8px;">
+                <h1 style="color: #000; margin: 0; font-size: 18px; font-weight: bold;">POLICE CASE MANAGEMENT</h1>
+                <p style="color: #000; font-size: 11px; margin: 3px 0;">Case: ${caseData.case_number || 'N/A'} | ${new Date().toLocaleString('en-GB')}</p>
+            </div>
+            
+            <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 16px; border: 2px solid #000;">
+                <thead>`;
+
+        // Page 1 Headers
+        let hasSubColumns1 = page1Columns.some(col => col.hasSubColumns);
+        if (hasSubColumns1) {
+            html += '<tr>';
+            page1Columns.forEach(col => {
+                if (col.hasSubColumns) {
+                    html += `<th colspan="${col.subColumns.length}" style="border: 2px solid #000; padding: 6px 4px; background: #000; color: #000; font-weight: bold; text-align: center; vertical-align: middle; font-size: 16px; word-wrap: break-word;">${col.header}</th>`;
+                } else {
+                    html += `<th rowspan="2" style="border: 2px solid #000; padding: 6px 4px; background: #fff; color: #000; font-weight: bold; text-align: center; vertical-align: middle; font-size: 16px; word-wrap: break-word; width: ${100/9}%;">${col.header}</th>`;
+                }
+            });
+            html += '</tr><tr>';
+            page1Columns.forEach(col => {
+                if (col.hasSubColumns) {
+                    col.subColumns.forEach(subCol => {
+                        html += `<th style="border: 2px solid #000; padding: 5px 3px; background: #fff; color: #000; font-weight: bold; text-align: center; vertical-align: middle; font-size: 16px; word-wrap: break-word; width: ${100/9}%;">${subCol.header}</th>`;
+                    });
+                }
+            });
+            html += '</tr>';
+        } else {
+            html += '<tr>';
+            page1Columns.forEach(col => {
+                html += `<th style="border: 2px solid #000; padding: 6px 4px; background: #fff; color: #000; font-weight: bold; text-align: center; vertical-align: middle; font-size: 16px; word-wrap: break-word; width: ${100/page1Columns.length}%;">${col.header}</th>`;
+            });
+            html += '</tr>';
+        }
+
+        html += `</thead><tbody><tr>`;
+
+        // Page 1 Data
+        page1Columns.forEach(col => {
+            if (col.hasSubColumns) {
+                col.subColumns.forEach(subCol => {
+                    const value = subCol.getValue();
+                    html += `<td style="border: 2px solid #000; padding: 5px 4px; vertical-align: top; text-align: left; line-height: 1.4; font-size: 16px; color: #000; word-wrap: break-word; overflow-wrap: break-word;">${value}</td>`;
+                });
+            } else {
+                const value = col.getValue();
+                html += `<td style="border: 2px solid #000; padding: 5px 4px; vertical-align: top; text-align: left; line-height: 1.4; font-size: 16px; color: #000; word-wrap: break-word; overflow-wrap: break-word;">${value}</td>`;
+            }
+        });
+
+        html += `</tr></tbody></table>
+        </div>`;
+
+        // Generate Page 2
+        html += `
+        <div class="page-2" style="font-family: 'Arial', sans-serif; padding: 5mm; width: 100%; box-sizing: border-box;">
+            <div style="text-align: center; margin-bottom: 8px;">
+                <h1 style="color: #000; margin: 0; font-size: 18px; font-weight: bold;">POLICE CASE MANAGEMENT</h1>
+                <p style="color: #000; font-size: 11px; margin: 3px 0;">Case: ${caseData.case_number || 'N/A'} | ${new Date().toLocaleString('en-GB')}</p>
+            </div>
+            
+            <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 16px; border: 2px solid #000;">
+                <thead>`;
+
+        // Page 2 Headers
+        let hasSubColumns2 = page2Columns.some(col => col.hasSubColumns);
+        html += '<tr>';
+        page2Columns.forEach(col => {
+            if (col.hasSubColumns) {
+                html += `<th colspan="${col.subColumns.length}" style="border: 2px solid #000; padding: 6px 4px; background: #fff; color: #000; font-weight: bold; text-align: center; vertical-align: middle; font-size: 16px; word-wrap: break-word; width: ${100/page2Columns.length}%;">${col.header}</th>`;
+            } else {
+                html += `<th style="border: 2px solid #000; padding: 6px 4px; background: #fff; color: #000; font-weight: bold; text-align: center; vertical-align: middle; font-size: 16px; word-wrap: break-word; width: ${100/page2Columns.length}%;">${col.header}</th>`;
+            }
+        });
+        html += '</tr>';
+
+        html += `</thead><tbody><tr>`;
+
+        // Page 2 Data
+        page2Columns.forEach(col => {
+            if (col.hasSubColumns) {
+                col.subColumns.forEach(subCol => {
+                    const value = subCol.getValue();
+                    html += `<td style="border: 2px solid #000; padding: 5px 4px; vertical-align: top; text-align: left; line-height: 1.4; font-size: 16px; color: #000; word-wrap: break-word; overflow-wrap: break-word;">${value}</td>`;
+                });
+            } else {
+                const value = col.getValue();
+                html += `<td style="border: 2px solid #000; padding: 5px 4px; vertical-align: top; text-align: left; line-height: 1.4; font-size: 16px; color: #000; word-wrap: break-word; overflow-wrap: break-word;">${value}</td>`;
+            }
+        });
+
+        html += `</tr></tbody></table>
+        </div>`;
+
+        return html;
     }
 
     // Close modal when clicking outside
