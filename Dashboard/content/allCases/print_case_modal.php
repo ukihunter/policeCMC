@@ -59,15 +59,15 @@
                     <div class="print-category">
                         <h4><i class="fas fa-file-alt"></i> Case Details</h4>
                         <label class="print-checkbox">
-                            <input type="checkbox" class="print-field" data-field="opens">
-                            <span>Opens</span>
+                            <input type="checkbox" class="print-field" data-field="opens" checked>
+                            <span>Offense</span>
                         </label>
                         <label class="print-checkbox">
-                            <input type="checkbox" class="print-field" data-field="progress">
+                            <input type="checkbox" class="print-field" data-field="progress" checked>
                             <span>Progress Notes</span>
                         </label>
                         <label class="print-checkbox">
-                            <input type="checkbox" class="print-field" data-field="results">
+                            <input type="checkbox" class="print-field" data-field="results" checked>
                             <span>Results</span>
                         </label>
                     </div>
@@ -98,11 +98,11 @@
                         <h4><i class="fas fa-users"></i> People Involved</h4>
                         <label class="print-checkbox">
                             <input type="checkbox" class="print-field" data-field="suspects" checked>
-                            <span>Suspects</span>
+                            <span>Suspects (Police Area)</span>
                         </label>
                         <label class="print-checkbox">
-                            <input type="checkbox" class="print-field" data-field="witnesses">
-                            <span>Witnesses</span>
+                            <input type="checkbox" class="print-field" data-field="witnesses" checked>
+                            <span>Witnesses (Police Area)</span>
                         </label>
                     </div>
 

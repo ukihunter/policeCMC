@@ -11,12 +11,12 @@ if (!isset($_SESSION["user_id"])) {
 require_once __DIR__ . '/../../config/db.php';
 
 try {
-    // Get today's cases
-    $query = "SELECT id, case_number, information_book, register_number, opens, case_status, created_at 
+    // Get cases where next_date is today (cases scheduled for today)
+    $query = "SELECT id, case_number, information_book, register_number, opens, case_status, next_date, created_at 
               FROM cases 
-              WHERE DATE(created_at) = CURDATE()
-              ORDER BY created_at DESC 
-              LIMIT 10";
+              WHERE DATE(next_date) = CURDATE()
+              ORDER BY next_date DESC, created_at DESC 
+              LIMIT 15";
 
     $result = $conn->query($query);
     $cases = [];

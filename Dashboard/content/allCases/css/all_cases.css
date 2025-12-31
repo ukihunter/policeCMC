@@ -3,6 +3,8 @@
   flex-direction: column;
   gap: 15px;
   margin-bottom: 25px;
+  overflow: visible;
+  position: relative;
 }
 
 .cases-header h2 {
@@ -89,6 +91,12 @@
   box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
 }
 
+.header-actions {
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+}
+
 .filter-section {
   display: flex;
   flex-direction: column;
@@ -96,6 +104,8 @@
   background: #f8f9fa;
   padding: 15px;
   border-radius: 8px;
+  overflow: visible;
+  position: relative;
 }
 
 .filter-row {
@@ -103,6 +113,8 @@
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+  overflow: visible;
+  position: relative;
 }
 
 .filter-section input[type="text"],
@@ -115,6 +127,8 @@
   font-size: 14px;
   transition: all 0.3s ease;
   background: white;
+  position: relative;
+  z-index: 1;
 }
 
 .filter-section input[type="text"]:focus,
@@ -122,10 +136,14 @@
   outline: none;
   border-color: #4a9eff;
   box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.1);
+  z-index: 100;
 }
 
 .filter-section select {
   cursor: pointer;
+  appearance: auto;
+  -webkit-appearance: auto;
+  -moz-appearance: auto;
 }
 
 .date-filter-group {

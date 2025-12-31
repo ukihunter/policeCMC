@@ -6,8 +6,9 @@
 
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f5f7fa;
+  background: #f5f7fa;
   color: #333;
+  min-height: 100vh;
 }
 
 .container {
@@ -17,7 +18,7 @@ body {
 
 /* Sidebar Styles */
 .sidebar {
-  background: #0e74e9ff;
+  background: #1a56a8;
   width: 260px;
   transition: width 0.3s ease;
   position: fixed;
@@ -26,10 +27,11 @@ body {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  border-radius: 0px 30px 0px 0px;
+  border-radius: 0;
   overflow-y: auto;
   overflow-x: visible;
   z-index: 1000;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
 }
 
 /* Hide scrollbar for sidebar */
@@ -108,7 +110,7 @@ body {
   right: 10px;
   width: 30px;
   height: 30px;
-  background: linear-gradient(135deg, #70adf3ff 0%, #2d7dd2 100%);
+  background: #2563eb;
   border: none;
   border-radius: 50%;
   color: white;
@@ -116,7 +118,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(74, 158, 255, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease;
   z-index: 1001;
 }
@@ -253,7 +255,7 @@ body {
 .user-avatar {
   width: 45px;
   height: 45px;
-  background: linear-gradient(135deg, #4a9eff 0%, #2d7dd2 100%);
+  background: #1a56a8;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -276,11 +278,11 @@ body {
 }
 
 .logout-btn {
-  background: linear-gradient(135deg, #4a9eff 0%, #2d7dd2 100%);
+  background: #dc2626;
   color: white;
   border: none;
   padding: 10px 25px;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
@@ -539,17 +541,17 @@ body {
 }
 
 .badge-ongoing {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: #8b5cf6;
   color: white;
 }
 
 .badge-pending {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: #f59e0b;
   color: white;
 }
 
 .badge-closed {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  background: #10b981;
   color: white;
 }
 
@@ -716,23 +718,23 @@ body {
 }
 
 .stat-card:nth-child(1) {
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-  border: 1px solid #90caf9;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
 }
 
 .stat-card:nth-child(2) {
-  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
-  border: 1px solid #ffb74d;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
 }
 
 .stat-card:nth-child(3) {
-  background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
-  border: 1px solid #ba68c8;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
 }
 
 .stat-card:nth-child(4) {
-  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-  border: 1px solid #66bb6a;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
 }
 
 .stat-card:hover {
@@ -758,27 +760,27 @@ body {
 .stat-icon {
   width: 60px;
   height: 60px;
-  background: #2196f3;
-  border-radius: 12px;
+  background: #1a56a8;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 28px;
   color: white;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .stat-icon.pending {
-  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  background: #f59e0b;
 }
 
 .stat-icon.ongoing {
-  background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+  background: #8b5cf6;
 }
 
 .stat-icon.closed {
-  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+  background: #10b981;
 }
 
 .stat-info {
@@ -880,15 +882,15 @@ body {
 }
 
 .progress-segment.pending {
-  background: linear-gradient(90deg, #ff9800 0%, #f57c00 100%);
+  background: #f59e0b;
 }
 
 .progress-segment.ongoing {
-  background: linear-gradient(90deg, #9c27b0 0%, #7b1fa2 100%);
+  background: #8b5cf6;
 }
 
 .progress-segment.closed {
-  background: linear-gradient(90deg, #4caf50 0%, #388e3c 100%);
+  background: #10b981;
 }
 
 .progress-legend {
@@ -913,15 +915,15 @@ body {
 }
 
 .legend-color.pending {
-  background: linear-gradient(90deg, #ff9800 0%, #f57c00 100%);
+  background: #f59e0b;
 }
 
 .legend-color.ongoing {
-  background: linear-gradient(90deg, #9c27b0 0%, #7b1fa2 100%);
+  background: #8b5cf6;
 }
 
 .legend-color.closed {
-  background: linear-gradient(90deg, #4caf50 0%, #388e3c 100%);
+  background: #10b981;
 }
 
 .legend-text {
@@ -959,13 +961,18 @@ body {
   position: fixed;
   bottom: 0;
   right: 0;
-  background: #0e74e9ff;
+  background: #1a56a8;
   color: white;
-  padding: 10px 20px;
+  padding: 12px 24px;
   font-size: 12px;
-  border-radius: 8px 0 0 0;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 0;
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
   z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.fixed-footer:hover {
+  background: #164a91;
 }
 
 .fixed-footer a {
@@ -980,3 +987,172 @@ body {
   color: white;
   text-decoration: none;
 }
+
+/* Enhanced Today's Schedule Card */
+.today-highlight {
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.today-highlight:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+}
+
+.today-highlight .summary-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.section-subtitle {
+  padding: 10px 25px;
+  background: #f8fbff;
+  color: #546e7a;
+  font-size: 13px;
+  font-style: italic;
+  border-bottom: 1px solid #e3f2fd;
+}
+
+/* Case Number Link Styling */
+.case-number-link {
+  color: #0e74e9ff;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.case-number-link:hover {
+  color: #0a5bc4;
+  text-decoration: underline;
+}
+
+/* Next Date Badge */
+.next-date-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #f3f4f6;
+  color: #374151;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #d1d5db;
+}
+
+/* Highlight Row Animation */
+.highlight-row {
+  transition: all 0.3s ease;
+}
+
+.highlight-row:hover {
+  background: #f9fafb !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transform: translateX(3px) !important;
+}
+
+/* Enhanced Top Bar */
+.top-bar {
+  background: #ffffff;
+  padding: 20px 30px;
+  border-radius: 0;
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Enhanced Stat Cards */
+.stats-chart-section {
+  background: #ffffff;
+  border-radius: 0;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+/* Enhanced Summary Cards */
+.summary-card {
+  background: white;
+  border-radius: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #e5e7eb;
+}
+
+.summary-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Professional Table Enhancements */
+.modern-table tbody tr:hover {
+  background: #f9fafb;
+  transform: scale(1.002);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Badge Enhancements */
+.badge-count {
+  background: #1a56a8;
+  color: white;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+/* Tab Content Enhancement */
+.tab-content {
+  display: none;
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.3s ease;
+  overflow: visible;
+  height: auto;
+  border: 1px solid #e5e7eb;
+}
+
+/* Enhanced Progress Bar */
+.progress-chart {
+  background: #f9fafb;
+  border-radius: 0;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  box-shadow: none;
+}
+
+/* Responsive Design Enhancements */
+@media (max-width: 768px) {
+  .section-subtitle {
+    font-size: 11px;
+    padding: 8px 15px;
+  }
+  
+  .next-date-badge {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+}
+
+/* Loading Animation */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.loading-shimmer {
+  animation: shimmer 2s infinite;
+  background: linear-gradient(to right, #f0f0f0 4%, #e0e0e0 25%, #f0f0f0 36%);
+  background-size: 1000px 100%;
+}
+

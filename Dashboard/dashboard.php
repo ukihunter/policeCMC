@@ -213,10 +213,13 @@ $stmt->close();
                 <!-- Summary Section -->
                 <div class="summary-section">
                     <!-- Today's Cases Table -->
-                    <div class="summary-card">
+                    <div class="summary-card today-highlight">
                         <div class="summary-header">
-                            <h3><i class="fas fa-calendar-day"></i> Today's Cases</h3>
+                            <h3><i class="fas fa-calendar-check"></i> Today's Schedule</h3>
                             <span class="badge-count">0</span>
+                        </div>
+                        <div class="section-subtitle">
+                            Cases with next date scheduled for today
                         </div>
                         <div class="table-container">
                             <table class="modern-table">
@@ -225,9 +228,9 @@ $stmt->close();
                                         <th>Case Number</th>
                                         <th>Information Book</th>
                                         <th>Register</th>
-                                        <th>Opens</th>
+                                        <th>Details</th>
                                         <th>Status</th>
-                                        <th>Time</th>
+                                        <th>Next Date</th>
                                     </tr>
                                 </thead>
                                 <tbody id="today-cases-tbody">
@@ -534,24 +537,25 @@ $stmt->close();
                     if (data.success && data.cases.length > 0) {
                         tbody.innerHTML = data.cases.map(c => {
                             const statusClass = c.case_status.toLowerCase();
-                            const time = new Date(c.created_at).toLocaleTimeString('en-GB', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            });
-                            const opens = (c.opens || '-').substring(0, 40) + ((c.opens && c.opens.length > 40) ? '...' : '');
+                            const nextDate = c.next_date ? new Date(c.next_date).toLocaleDateString('en-GB', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric'
+                            }) : 'Not Set';
+                            const opens = (c.opens || '-').substring(0, 45) + ((c.opens && c.opens.length > 45) ? '...' : '');
                             return `
-                                <tr onclick="switchTab('cases');" style="cursor: pointer;">
-                                    <td><strong>${c.case_number}</strong></td>
+                                <tr onclick="switchTab('cases');" style="cursor: pointer;" class="highlight-row">
+                                    <td><strong class="case-number-link">${c.case_number}</strong></td>
                                     <td>${c.information_book}</td>
                                     <td>${c.register_number}</td>
-                                    <td>${opens}</td>
+                                    <td title="${c.opens || '-'}">${opens}</td>
                                     <td><span class="badge-status badge-${statusClass}">${c.case_status}</span></td>
-                                    <td>${time}</td>
+                                    <td><span class="next-date-badge">${nextDate}</span></td>
                                 </tr>
                             `;
                         }).join('');
                     } else {
-                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #6b7280;">No cases created today</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: #6b7280;"><i class="fas fa-calendar-times" style="font-size: 48px; display: block; margin-bottom: 10px; opacity: 0.3;"></i>No cases scheduled for today</td></tr>';
                     }
                 })
                 .catch(error => console.error('Error loading today cases:', error));

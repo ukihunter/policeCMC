@@ -21,8 +21,50 @@
                             <input type="date" id="edit_previous_date" name="previous_date" required>
                         </div>
                         <div class="form-group">
-                            <label for="edit_register_number">Register Number *</label>
-                            <input type="text" id="edit_register_number" name="register_number" required placeholder="e.g., GCR 01/2025">
+                            <label for="edit_register_type">Register Type *</label>
+                            <select id="edit_register_type" name="register_type" required>
+                                <option value="">-- Select Register Type --</option>
+                                <option value="GCR">GCR</option>
+                                <option value="MOR">MOR</option>
+                                <option value="VMOR">VMOR</option>
+                                <option value="MCR">MCR</option>
+                                <option value="TAR">TAR</option>
+                                <option value="TMOR">TMOR</option>
+                                <option value="AR">AR</option>
+                                <option value="SDR">SDR</option>
+                                <option value="MPR">MPR</option>
+                                <option value="LPR">LPR</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_register_month">Register Month *</label>
+                            <select id="edit_register_month" name="register_month" required>
+                                <option value="">-- Select Month --</option>
+                                <option value="01">January</option>
+                                <option value="02">February</option>
+                                <option value="03">March</option>
+                                <option value="04">April</option>
+                                <option value="05">May</option>
+                                <option value="06">June</option>
+                                <option value="07">July</option>
+                                <option value="08">August</option>
+                                <option value="09">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_register_year">Register Year *</label>
+                            <input type="text" id="edit_register_year" name="register_year" required
+                                placeholder="YYYY" maxlength="4" pattern="[0-9]{4}">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_register_number_display">Register Number (Auto-generated)</label>
+                            <input type="text" id="edit_register_number_display" readonly
+                                style="background-color: #f3f4f6; cursor: not-allowed;"
+                                placeholder="Will be generated from selections above">
+                            <input type="hidden" id="edit_register_number" name="register_number">
                         </div>
                         <div class="form-group full-width">
                             <label for="edit_information_book">Information Book *</label>
@@ -498,18 +540,10 @@
                     showSuccess('Case updated successfully!', 'Success');
                     closeEditModal();
 
-                    // Update the row in the table without reloading
-                    updateCaseRow(data.case);
-
-                    // Reapply filters to maintain search state
-                    if (typeof window.filterCases === 'function') {
-                        window.filterCases();
-                    }
-
-                    // Reload dashboard stats to reflect any status changes
-                    if (typeof loadDashboardStats === 'function') {
-                        loadDashboardStats();
-                    }
+                    // Reload the page to show updated data
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
                 } else {
                     showError(data.message || 'Failed to update case', 'Update Failed');
                 }

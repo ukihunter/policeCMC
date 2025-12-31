@@ -378,6 +378,83 @@ if ($result) {
             });
     };
 
+    // Register Number Management for Edit Modal
+    window.updateEditRegisterNumber = function() {
+        const type = document.getElementById('edit_register_type');
+        const month = document.getElementById('edit_register_month');
+        const year = document.getElementById('edit_register_year');
+        const display = document.getElementById('edit_register_number_display');
+        const hidden = document.getElementById('edit_register_number');
+
+        if (!type || !month || !year || !display || !hidden) {
+            return; // Elements not ready yet
+        }
+
+        const typeValue = type.value;
+        const monthValue = month.value;
+        const yearValue = year.value;
+
+        if (typeValue && monthValue && yearValue && yearValue.length === 4) {
+            const fullNumber = `${typeValue} ${monthValue}/${yearValue}`;
+            display.value = fullNumber;
+            hidden.value = fullNumber;
+        } else {
+            display.value = '';
+            hidden.value = '';
+        }
+    }
+
+    function parseAndPopulateRegisterNumber(registerNumber) {
+        // Parse register number like "GCR 01/2025"
+        if (!registerNumber) {
+            document.getElementById('edit_register_type').value = '';
+            document.getElementById('edit_register_month').value = '';
+            document.getElementById('edit_register_year').value = '';
+            document.getElementById('edit_register_number_display').value = '';
+            document.getElementById('edit_register_number').value = '';
+            return;
+        }
+
+        // Pattern: TYPE MONTH/YEAR (e.g., "GCR 01/2025")
+        const match = registerNumber.match(/^([A-Z]+)\s+(\d{2})\/(\d{4})$/);
+
+        if (match) {
+            const [, type, month, year] = match;
+            document.getElementById('edit_register_type').value = type;
+            document.getElementById('edit_register_month').value = month;
+            document.getElementById('edit_register_year').value = year;
+        } else {
+            // If parsing fails, try to extract what we can
+            document.getElementById('edit_register_type').value = '';
+            document.getElementById('edit_register_month').value = '';
+            document.getElementById('edit_register_year').value = '';
+        }
+
+        // Update the display after populating
+        setTimeout(() => {
+            window.updateEditRegisterNumber();
+        }, 100);
+    }
+
+    function attachEditRegisterListeners() {
+        const editRegisterType = document.getElementById('edit_register_type');
+        const editRegisterMonth = document.getElementById('edit_register_month');
+        const editRegisterYear = document.getElementById('edit_register_year');
+
+        if (editRegisterType) {
+            editRegisterType.removeEventListener('change', window.updateEditRegisterNumber);
+            editRegisterType.addEventListener('change', window.updateEditRegisterNumber);
+        }
+        if (editRegisterMonth) {
+            editRegisterMonth.removeEventListener('change', window.updateEditRegisterNumber);
+            editRegisterMonth.addEventListener('change', window.updateEditRegisterNumber);
+        }
+        if (editRegisterYear) {
+            editRegisterYear.removeEventListener('input', window.updateEditRegisterNumber);
+            editRegisterYear.addEventListener('input', window.updateEditRegisterNumber);
+        }
+    }
+
     // Define functions immediately and attach to window
     window.filterCases = function() {
         const searchCaseNumber = document.getElementById('searchCaseNumber').value.toUpperCase();
@@ -421,7 +498,7 @@ if ($result) {
 
             // Dropdown filters
             const matchesInfoBook = filterInfoBook === '' || infoBook === filterInfoBook;
-            const matchesRegister = filterRegister === '' || register === filterRegister;
+            const matchesRegister = filterRegister === '' || register.trim().startsWith(filterRegister);
             const matchesAttorneyAdvice = filterAttorneyAdvice === '' || attorneyAdvice === filterAttorneyAdvice;
             const matchesAnalystReport = filterAnalystReport === '' || analystReport === filterAnalystReport;
 
@@ -829,7 +906,10 @@ if ($result) {
         document.getElementById('edit_case_id').value = caseData.id;
         document.getElementById('edit_case_number').value = caseData.case_number || '';
         document.getElementById('edit_previous_date').value = caseData.previous_date || '';
-        document.getElementById('edit_register_number').value = caseData.register_number || '';
+
+        // Parse and populate register number fields
+        parseAndPopulateRegisterNumber(caseData.register_number || '');
+
         document.getElementById('edit_information_book').value = caseData.information_book || '';
         document.getElementById('edit_date_produce_b_report').value = caseData.date_produce_b_report || '';
         document.getElementById('edit_date_produce_plant').value = caseData.date_produce_plant || '';
@@ -866,6 +946,9 @@ if ($result) {
             // Add one empty witness field
             addEditWitness();
         }
+
+        // Attach event listeners for register number fields
+        attachEditRegisterListeners();
     }
 
     window.printCase = function(caseId) {
@@ -926,7 +1009,18 @@ if ($result) {
 
     window.selectCourtEssentials = function() {
         window.deselectAllPrintFields();
-        const essentials = ['case_number', 'previous_date', 'register_number', 'next_date', 'suspects', 'witnesses', 'opens', 'attorney_general_advice'];
+        const essentials = [
+            'case_number',
+            'previous_date',
+            'information_book',
+            'register_number',
+            'opens',
+            'witnesses',
+            'suspects',
+            'progress',
+            'results',
+            'next_date'
+        ];
         essentials.forEach(field => {
             const checkbox = document.querySelector(`.print-field[data-field="${field}"]`);
             if (checkbox) {
@@ -1466,9 +1560,10 @@ if ($result) {
             });
         };
 
-        // Define fixed column structure in order - ignoring selectedFields
-        const columns = [{
+        // Define all available columns with their field mappings
+        const allColumns = [{
                 key: 'case_previous',
+                fields: ['case_number', 'previous_date'],
                 header: 'Case Number / Previous Date',
                 getValue: () => {
                     let val = '';
@@ -1482,6 +1577,7 @@ if ($result) {
             },
             {
                 key: 'info_register',
+                fields: ['information_book', 'register_number'],
                 header: 'Information Book / Register Number',
                 getValue: () => {
                     let val = '';
@@ -1495,26 +1591,31 @@ if ($result) {
             },
             {
                 key: 'date_produce_b_report',
+                fields: ['date_produce_b_report'],
                 header: 'Date of Produce B Report',
                 getValue: () => formatDate(caseData.date_produce_b_report)
             },
             {
                 key: 'date_produce_plant',
+                fields: ['date_produce_plant'],
                 header: 'Date of Produce Plant',
                 getValue: () => formatDate(caseData.date_produce_plant)
             },
             {
                 key: 'offence',
+                fields: ['opens'],
                 header: 'Offence',
                 getValue: () => caseData.opens ? caseData.opens.replace(/\n/g, '<br>') : ''
             },
             {
                 key: 'attorney_general_advice',
+                fields: ['attorney_general_advice'],
                 header: "Attorney General's Advice",
                 getValue: () => caseData.attorney_general_advice || ''
             },
             {
                 key: 'production_handover',
+                fields: ['production_register_number', 'date_handover_court'],
                 header: 'Production Register Number / Date of Hand Over to Court',
                 getValue: () => {
                     let val = '';
@@ -1530,6 +1631,7 @@ if ($result) {
             },
             {
                 key: 'government_analyst',
+                fields: ['receival_memorandum', 'analyst_report'],
                 header: "Government Analyst's Report",
                 hasSubColumns: true,
                 subColumns: [{
@@ -1546,6 +1648,7 @@ if ($result) {
             },
             {
                 key: 'suspects',
+                fields: ['suspects'],
                 header: 'Suspect Name, Address, NIC Number',
                 getValue: () => {
                     const suspects = JSON.parse(caseData.suspect_data || '[]');
@@ -1560,6 +1663,7 @@ if ($result) {
             },
             {
                 key: 'witnesses',
+                fields: ['witnesses'],
                 header: 'Witness Name, Address, NIC Number',
                 getValue: () => {
                     const witnesses = JSON.parse(caseData.witness_data || '[]');
@@ -1574,20 +1678,42 @@ if ($result) {
             },
             {
                 key: 'progress',
+                fields: ['progress'],
                 header: 'Progress',
                 getValue: () => caseData.progress ? caseData.progress.replace(/\n/g, '<br>') : ''
             },
             {
                 key: 'results',
+                fields: ['results'],
                 header: 'Results',
                 getValue: () => caseData.results ? caseData.results.replace(/\n/g, '<br>') : ''
             },
             {
                 key: 'next_date',
+                fields: ['next_date'],
                 header: 'Next Date',
                 getValue: () => formatDate(caseData.next_date)
             }
         ];
+
+        // Filter columns based on selected fields
+        const columns = allColumns.filter(col => {
+            // If column has sub-columns, check if any sub-column field is selected
+            if (col.hasSubColumns) {
+                return col.fields.some(field => selectedFields.includes(field));
+            }
+            // Otherwise check if any of the column's fields are selected
+            return col.fields.some(field => selectedFields.includes(field));
+        });
+
+        // If using sub-columns, filter them too
+        columns.forEach(col => {
+            if (col.hasSubColumns) {
+                col.subColumns = col.subColumns.filter(subCol =>
+                    selectedFields.includes(subCol.key)
+                );
+            }
+        });
 
         if (printLayout === 'dual') {
             return generateDualPageHTML(caseData, columns, formatDate);
