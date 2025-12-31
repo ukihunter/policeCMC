@@ -1133,7 +1133,7 @@ body {
     font-size: 11px;
     padding: 8px 15px;
   }
-  
+
   .next-date-badge {
     font-size: 11px;
     padding: 4px 8px;
@@ -1155,4 +1155,3 @@ body {
   background: linear-gradient(to right, #f0f0f0 4%, #e0e0e0 25%, #f0f0f0 36%);
   background-size: 1000px 100%;
 }
-
