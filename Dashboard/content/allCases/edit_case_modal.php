@@ -16,48 +16,55 @@
                             <label for="edit_case_number">Case Number *</label>
                             <input type="text" id="edit_case_number" name="case_number" required>
                         </div>
+
                         <div class="form-group">
                             <label for="edit_previous_date">Previous Date *</label>
                             <input type="date" id="edit_previous_date" name="previous_date" required>
                         </div>
-                        <div class="form-group">
-                            <label for="edit_register_type">Register Type *</label>
-                            <select id="edit_register_type" name="register_type" required>
-                                <option value="">-- Select Register Type --</option>
-                                <option value="GCR">GCR</option>
-                                <option value="MOR">MOR</option>
-                                <option value="VMOR">VMOR</option>
-                                <option value="MCR">MCR</option>
-                                <option value="TAR">TAR</option>
-                                <option value="TMOR">TMOR</option>
-                                <option value="AR">AR</option>
-                                <option value="SDR">SDR</option>
-                                <option value="MPR">MPR</option>
-                                <option value="LPR">LPR</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit_register_month">Register Month *</label>
-                            <select id="edit_register_month" name="register_month" required>
-                                <option value="">-- Select Month --</option>
-                                <option value="01">January</option>
-                                <option value="02">February</option>
-                                <option value="03">March</option>
-                                <option value="04">April</option>
-                                <option value="05">May</option>
-                                <option value="06">June</option>
-                                <option value="07">July</option>
-                                <option value="08">August</option>
-                                <option value="09">September</option>
-                                <option value="10">October</option>
-                                <option value="11">November</option>
-                                <option value="12">December</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit_register_year">Register Year *</label>
-                            <input type="text" id="edit_register_year" name="register_year" required
-                                placeholder="YYYY" maxlength="4" pattern="[0-9]{4}">
+
+                        <div class="form-group full-width">
+                            <label style="margin-bottom: 5px;">Register Information *</label>
+                            <div style="display: grid; grid-template-columns: 2fr 2fr 1fr; gap: 15px;">
+                                <div style="display: flex; flex-direction: column; gap: 5px;">
+                                    <label for="edit_register_type" style="font-size: 13px; font-weight: 500;">Register Type *</label>
+                                    <select id="edit_register_type" name="register_type" required>
+                                        <option value="">-- Select Register Type --</option>
+                                        <option value="GCR">GCR</option>
+                                        <option value="MOR">MOR</option>
+                                        <option value="VMOR">VMOR</option>
+                                        <option value="MCR">MCR</option>
+                                        <option value="TAR">TAR</option>
+                                        <option value="TMOR">TMOR</option>
+                                        <option value="AR">AR</option>
+                                        <option value="SDR">SDR</option>
+                                        <option value="MPR">MPR</option>
+                                        <option value="LPR">LPR</option>
+                                    </select>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 5px;">
+                                    <label for="edit_register_month" style="font-size: 13px; font-weight: 500;">Register Month *</label>
+                                    <select id="edit_register_month" name="register_month" required>
+                                        <option value="">-- Select Month --</option>
+                                        <option value="01">January</option>
+                                        <option value="02">February</option>
+                                        <option value="03">March</option>
+                                        <option value="04">April</option>
+                                        <option value="05">May</option>
+                                        <option value="06">June</option>
+                                        <option value="07">July</option>
+                                        <option value="08">August</option>
+                                        <option value="09">September</option>
+                                        <option value="10">October</option>
+                                        <option value="11">November</option>
+                                        <option value="12">December</option>
+                                    </select>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 5px;">
+                                    <label for="edit_register_year" style="font-size: 13px; font-weight: 500;">Register Year *</label>
+                                    <input type="text" id="edit_register_year" name="register_year" required
+                                        placeholder="YYYY" maxlength="4" pattern="[0-9]{4}">
+                                </div>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="edit_register_number_display">Register Number (Auto-generated)</label>
@@ -71,9 +78,9 @@
                             <select id="edit_information_book" name="information_book" required>
                                 <option value="">Select Information Book</option>
                                 <option value="RIB">RIB</option>
-                                <option value="GCIB I">GCIB I</option>
-                                <option value="GCIB II">GCIB II</option>
-                                <option value="GCIB III">GCIB III</option>
+                                <option value="GCIB_I">GCIB I</option>
+                                <option value="GCIB_II">GCIB II</option>
+                                <option value="GCIB_III">GCIB III</option>
                                 <option value="MOIB">MOIB</option>
                                 <option value="VIB">VIB</option>
                                 <option value="EIB">EIB</option>
@@ -82,14 +89,14 @@
                                 <option value="PIB">PIB</option>
                                 <option value="TIB">TIB</option>
                                 <option value="AIB">AIB</option>
-                                <option value="CIB I">CIB I</option>
-                                <option value="CIB II">CIB II</option>
-                                <option value="CIB III">CIB III</option>
-                                <option value="119 IB">119 IB</option>
+                                <option value="CIB_I">CIB I</option>
+                                <option value="CIB_II">CIB II</option>
+                                <option value="CIB_III">CIB III</option>
+                                <option value="119_IB">119 IB</option>
                                 <option value="TR">TR</option>
-                                <option value="119 TR">119 TR</option>
-                                <option value="VPN TR">VPN TR</option>
-                                <option value="118 TR">118 TR</option>
+                                <option value="119_TR">119 TR</option>
+                                <option value="VPN_TR">VPN TR</option>
+                                <option value="118_TR">118 TR</option>
                             </select>
                         </div>
                     </div>
@@ -447,10 +454,10 @@
                            placeholder="Suspect name">
                 </div>
                 <div class="form-group">
-                    <label>IC Number</label>
+                    <label>NIC Number</label>
                     <input type="text" name="suspects[${index}][ic]" 
                            value="${suspectData?.ic || ''}" 
-                           placeholder="IC number">
+                           placeholder="NIC number">
                 </div>
                 <div class="form-group full-width">
                     <label>Address</label>
@@ -494,10 +501,10 @@
                            placeholder="Witness name">
                 </div>
                 <div class="form-group">
-                    <label>IC Number</label>
+                    <label>NIC Number</label>
                     <input type="text" name="witnesses[${index}][ic]" 
                            value="${witnessData?.ic || ''}" 
-                           placeholder="IC number">
+                           placeholder="NIC number">
                 </div>
                 <div class="form-group full-width">
                     <label>Address</label>

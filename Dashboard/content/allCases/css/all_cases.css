@@ -150,6 +150,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-right: 25px;
 }
 
 .date-filter-group label {
@@ -484,8 +485,13 @@
   align-items: center;
 }
 
+.modal-header * {
+  color: white !important;
+}
+
 .modal-header h2 {
   margin: 0;
+  color: white;
   font-size: 22px;
   display: flex;
   align-items: center;

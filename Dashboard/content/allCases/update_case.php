@@ -19,15 +19,17 @@ $case_number = $_POST['case_number'] ?? '';
 $previous_date = $_POST['previous_date'] ?? '';
 $information_book = $_POST['information_book'] ?? '';
 $register_number = $_POST['register_number'] ?? '';
-$date_produce_b_report = $_POST['date_produce_b_report'] ?? null;
-$date_produce_plant = $_POST['date_produce_plant'] ?? null;
-$date_handover_court = $_POST['date_handover_court'] ?? null;
-$next_date = $_POST['next_date'] ?? null;
+// Handle date fields - convert empty strings to NULL
+$date_produce_b_report = (!empty($_POST['date_produce_b_report']) && $_POST['date_produce_b_report'] !== '') ? $_POST['date_produce_b_report'] : null;
+$date_produce_plant = (!empty($_POST['date_produce_plant']) && $_POST['date_produce_plant'] !== '') ? $_POST['date_produce_plant'] : null;
+$date_handover_court = (!empty($_POST['date_handover_court']) && $_POST['date_handover_court'] !== '') ? $_POST['date_handover_court'] : null;
+$next_date = (!empty($_POST['next_date']) && $_POST['next_date'] !== '') ? $_POST['next_date'] : null;
 $next_date_notes = $_POST['next_date_notes'] ?? '';
 $opens = $_POST['opens'] ?? '';
-$attorney_general_advice = $_POST['attorney_general_advice'] ?? null;
-$receival_memorandum = $_POST['receival_memorandum'] ?? null;
-$analyst_report = $_POST['analyst_report'] ?? null;
+// Handle ENUM fields - convert empty strings to NULL
+$attorney_general_advice = (!empty($_POST['attorney_general_advice']) && $_POST['attorney_general_advice'] !== '') ? $_POST['attorney_general_advice'] : null;
+$receival_memorandum = (!empty($_POST['receival_memorandum']) && $_POST['receival_memorandum'] !== '') ? $_POST['receival_memorandum'] : null;
+$analyst_report = (!empty($_POST['analyst_report']) && $_POST['analyst_report'] !== '') ? $_POST['analyst_report'] : null;
 $production_register_number = $_POST['production_register_number'] ?? '';
 $progress = $_POST['progress'] ?? '';
 $results = $_POST['results'] ?? '';

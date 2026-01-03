@@ -55,59 +55,70 @@ if ($result) {
                 <input type="text" id="searchRegister" placeholder="Search Register..." onkeyup="filterCases()">
             </div>
 
-            <!-- Row 2: Date Filters -->
+            <!-- Row 2: Date Filters (Previous, B Report, Plant) -->
             <div class="filter-row">
                 <div class="date-filter-group">
-                    <label>Previous Date From:</label>
-                    <input type="date" id="prevDateFrom" onchange="filterCases()">
+                    <label>Previous Date:</label>
+                    <input type="date" id="prevDateFrom" onchange="handleDateChange('prevDate')">
+                    <label style="font-size: 11px; margin-top: 2px;">
+                        <input type="checkbox" id="prevDateExact" onchange="handleDateChange('prevDate')" style="width: auto; margin-right: 3px;" checked> Exact Match
+                    </label>
                 </div>
                 <div class="date-filter-group">
                     <label>To:</label>
-                    <input type="date" id="prevDateTo" onchange="filterCases()">
+                    <input type="date" id="prevDateTo" onchange="filterCases()" disabled style="opacity: 0.5; cursor: not-allowed;">
                 </div>
                 <div class="date-filter-group">
-                    <label>B Report Date From:</label>
-                    <input type="date" id="bReportDateFrom" onchange="filterCases()">
+                    <label>B Report Date:</label>
+                    <input type="date" id="bReportDateFrom" onchange="handleDateChange('bReportDate')">
+                    <label style="font-size: 11px; margin-top: 2px;">
+                        <input type="checkbox" id="bReportDateExact" onchange="handleDateChange('bReportDate')" style="width: auto; margin-right: 3px;" checked> Exact Match
+                    </label>
                 </div>
                 <div class="date-filter-group">
                     <label>To:</label>
-                    <input type="date" id="bReportDateTo" onchange="filterCases()">
+                    <input type="date" id="bReportDateTo" onchange="filterCases()" disabled style="opacity: 0.5; cursor: not-allowed;">
+                </div>
+                <div class="date-filter-group">
+                    <label>Plant Date:</label>
+                    <input type="date" id="plantDateFrom" onchange="handleDateChange('plantDate')">
+                    <label style="font-size: 11px; margin-top: 2px;">
+                        <input type="checkbox" id="plantDateExact" onchange="handleDateChange('plantDate')" style="width: auto; margin-right: 3px;" checked> Exact Match
+                    </label>
+                </div>
+                <div class="date-filter-group">
+                    <label>To:</label>
+                    <input type="date" id="plantDateTo" onchange="filterCases()" disabled style="opacity: 0.5; cursor: not-allowed;">
                 </div>
             </div>
 
-            <!-- Row 3: More Date Filters -->
+            <!-- Row 3: Date Filters (Handover, Next) -->
             <div class="filter-row">
                 <div class="date-filter-group">
-                    <label>Plant Date From:</label>
-                    <input type="date" id="plantDateFrom" onchange="filterCases()">
+                    <label>Handover Date:</label>
+                    <input type="date" id="handoverDateFrom" onchange="handleDateChange('handoverDate')">
+                    <label style="font-size: 11px; margin-top: 2px;">
+                        <input type="checkbox" id="handoverDateExact" onchange="handleDateChange('handoverDate')" style="width: auto; margin-right: 3px;" checked> Exact Match
+                    </label>
                 </div>
                 <div class="date-filter-group">
                     <label>To:</label>
-                    <input type="date" id="plantDateTo" onchange="filterCases()">
+                    <input type="date" id="handoverDateTo" onchange="filterCases()" disabled style="opacity: 0.5; cursor: not-allowed;">
                 </div>
                 <div class="date-filter-group">
-                    <label>Handover Date From:</label>
-                    <input type="date" id="handoverDateFrom" onchange="filterCases()">
+                    <label>Next Date:</label>
+                    <input type="date" id="nextDateFrom" onchange="handleDateChange('nextDate')">
+                    <label style="font-size: 11px; margin-top: 2px;">
+                        <input type="checkbox" id="nextDateExact" onchange="handleDateChange('nextDate')" style="width: auto; margin-right: 3px;" checked> Exact Match
+                    </label>
                 </div>
                 <div class="date-filter-group">
                     <label>To:</label>
-                    <input type="date" id="handoverDateTo" onchange="filterCases()">
+                    <input type="date" id="nextDateTo" onchange="filterCases()" disabled style="opacity: 0.5; cursor: not-allowed;">
                 </div>
             </div>
 
-            <!-- Row 4: Next Date Filter -->
-            <div class="filter-row">
-                <div class="date-filter-group">
-                    <label>Next Date From:</label>
-                    <input type="date" id="nextDateFrom" onchange="filterCases()">
-                </div>
-                <div class="date-filter-group">
-                    <label>To:</label>
-                    <input type="date" id="nextDateTo" onchange="filterCases()">
-                </div>
-            </div>
-
-            <!-- Row 5: Dropdown Filters -->
+            <!-- Row 4: Dropdown Filters -->
             <div class="filter-row">
                 <select id="filterInfoBook" onchange="filterCases()">
                     <option value="">All Information Books</option>
@@ -455,6 +466,27 @@ if ($result) {
         }
     }
 
+    // Handle date change and exact checkbox interaction
+    window.handleDateChange = function(dateType) {
+        const exactCheckbox = document.getElementById(dateType + 'Exact');
+        const toField = document.getElementById(dateType + 'To');
+
+        if (exactCheckbox && toField) {
+            if (exactCheckbox.checked) {
+                toField.value = '';
+                toField.disabled = true;
+                toField.style.opacity = '0.5';
+                toField.style.cursor = 'not-allowed';
+            } else {
+                toField.disabled = false;
+                toField.style.opacity = '1';
+                toField.style.cursor = 'text';
+            }
+        }
+
+        filterCases();
+    }
+
     // Define functions immediately and attach to window
     window.filterCases = function() {
         const searchCaseNumber = document.getElementById('searchCaseNumber').value.toUpperCase();
@@ -496,18 +528,26 @@ if ($result) {
             const matchesCaseNumber = searchCaseNumber === '' || caseNumber.toUpperCase().includes(searchCaseNumber);
             const matchesRegisterSearch = searchRegister === '' || register.toUpperCase().includes(searchRegister);
 
-            // Dropdown filters
-            const matchesInfoBook = filterInfoBook === '' || infoBook === filterInfoBook;
+            // Dropdown filters - normalize values for comparison (handle both underscores and spaces)
+            const normalizeValue = (val) => val.replace(/_/g, ' ').trim();
+            const matchesInfoBook = filterInfoBook === '' || normalizeValue(infoBook) === normalizeValue(filterInfoBook);
             const matchesRegister = filterRegister === '' || register.trim().startsWith(filterRegister);
             const matchesAttorneyAdvice = filterAttorneyAdvice === '' || attorneyAdvice === filterAttorneyAdvice;
             const matchesAnalystReport = filterAnalystReport === '' || analystReport === filterAnalystReport;
 
+            // Get exact date checkboxes
+            const prevDateExact = document.getElementById('prevDateExact').checked;
+            const bReportDateExact = document.getElementById('bReportDateExact').checked;
+            const plantDateExact = document.getElementById('plantDateExact').checked;
+            const handoverDateExact = document.getElementById('handoverDateExact').checked;
+            const nextDateExact = document.getElementById('nextDateExact').checked;
+
             // Date range filters
-            const matchesPrevDate = checkDateRange(prevDate, prevDateFrom, prevDateTo);
-            const matchesBReportDate = checkDateRange(bReportDate, bReportDateFrom, bReportDateTo);
-            const matchesPlantDate = checkDateRange(plantDate, plantDateFrom, plantDateTo);
-            const matchesHandoverDate = checkDateRange(handoverDate, handoverDateFrom, handoverDateTo);
-            const matchesNextDate = checkDateRange(nextDate, nextDateFrom, nextDateTo);
+            const matchesPrevDate = checkDateRange(prevDate, prevDateFrom, prevDateTo, prevDateExact);
+            const matchesBReportDate = checkDateRange(bReportDate, bReportDateFrom, bReportDateTo, bReportDateExact);
+            const matchesPlantDate = checkDateRange(plantDate, plantDateFrom, plantDateTo, plantDateExact);
+            const matchesHandoverDate = checkDateRange(handoverDate, handoverDateFrom, handoverDateTo, handoverDateExact);
+            const matchesNextDate = checkDateRange(nextDate, nextDateFrom, nextDateTo, nextDateExact);
 
             // Show/hide row based on all filters
             if (matchesCaseNumber && matchesRegisterSearch && matchesInfoBook && matchesRegister &&
@@ -520,28 +560,45 @@ if ($result) {
         }
     }
 
-    function checkDateRange(rowDate, dateFrom, dateTo) {
+    function checkDateRange(rowDate, dateFrom, dateTo, isExact) {
         if (!dateFrom && !dateTo) {
             return true; // No filter applied
         }
 
-        if (!rowDate) {
-            // If row has no date but filter is set, hide it
+        if (!rowDate || rowDate.trim() === '') {
+            // If exact match is selected or any filter is set, hide empty dates
             return false;
         }
 
         const rowDateObj = new Date(rowDate);
 
-        if (dateFrom && dateTo) {
+        // Check if the date is valid
+        if (isNaN(rowDateObj.getTime())) {
+            return false; // Invalid date, filter it out when filter is active
+        }
+
+        // Normalize dates to compare only year-month-day (ignore time)
+        const rowDateOnly = new Date(rowDateObj.getFullYear(), rowDateObj.getMonth(), rowDateObj.getDate());
+
+        if (isExact && dateFrom) {
+            // Exact date match - only show exact matches
+            const dateFromObj = new Date(dateFrom);
+            const dateFromOnly = new Date(dateFromObj.getFullYear(), dateFromObj.getMonth(), dateFromObj.getDate());
+            return rowDateOnly.getTime() === dateFromOnly.getTime();
+        } else if (dateFrom && dateTo) {
             const dateFromObj = new Date(dateFrom);
             const dateToObj = new Date(dateTo);
-            return rowDateObj >= dateFromObj && rowDateObj <= dateToObj;
+            const dateFromOnly = new Date(dateFromObj.getFullYear(), dateFromObj.getMonth(), dateFromObj.getDate());
+            const dateToOnly = new Date(dateToObj.getFullYear(), dateToObj.getMonth(), dateToObj.getDate());
+            return rowDateOnly >= dateFromOnly && rowDateOnly <= dateToOnly;
         } else if (dateFrom) {
             const dateFromObj = new Date(dateFrom);
-            return rowDateObj >= dateFromObj;
+            const dateFromOnly = new Date(dateFromObj.getFullYear(), dateFromObj.getMonth(), dateFromObj.getDate());
+            return rowDateOnly >= dateFromOnly;
         } else if (dateTo) {
             const dateToObj = new Date(dateTo);
-            return rowDateObj <= dateToObj;
+            const dateToOnly = new Date(dateToObj.getFullYear(), dateToObj.getMonth(), dateToObj.getDate());
+            return rowDateOnly <= dateToOnly;
         }
 
         return true;
@@ -554,16 +611,47 @@ if ($result) {
         document.getElementById('filterRegister').value = '';
         document.getElementById('filterAttorneyAdvice').value = '';
         document.getElementById('filterAnalystReport').value = '';
+        
+        // Clear Previous Date filters
         document.getElementById('prevDateFrom').value = '';
         document.getElementById('prevDateTo').value = '';
+        document.getElementById('prevDateTo').disabled = false;
+        document.getElementById('prevDateTo').style.opacity = '1';
+        document.getElementById('prevDateTo').style.cursor = 'text';
+        document.getElementById('prevDateExact').checked = false;
+        
+        // Clear B Report Date filters
         document.getElementById('bReportDateFrom').value = '';
         document.getElementById('bReportDateTo').value = '';
+        document.getElementById('bReportDateTo').disabled = false;
+        document.getElementById('bReportDateTo').style.opacity = '1';
+        document.getElementById('bReportDateTo').style.cursor = 'text';
+        document.getElementById('bReportDateExact').checked = false;
+        
+        // Clear Plant Date filters
         document.getElementById('plantDateFrom').value = '';
         document.getElementById('plantDateTo').value = '';
+        document.getElementById('plantDateTo').disabled = false;
+        document.getElementById('plantDateTo').style.opacity = '1';
+        document.getElementById('plantDateTo').style.cursor = 'text';
+        document.getElementById('plantDateExact').checked = false;
+        
+        // Clear Handover Date filters
         document.getElementById('handoverDateFrom').value = '';
         document.getElementById('handoverDateTo').value = '';
+        document.getElementById('handoverDateTo').disabled = false;
+        document.getElementById('handoverDateTo').style.opacity = '1';
+        document.getElementById('handoverDateTo').style.cursor = 'text';
+        document.getElementById('handoverDateExact').checked = false;
+        
+        // Clear Next Date filters
         document.getElementById('nextDateFrom').value = '';
         document.getElementById('nextDateTo').value = '';
+        document.getElementById('nextDateTo').disabled = false;
+        document.getElementById('nextDateTo').style.opacity = '1';
+        document.getElementById('nextDateTo').style.cursor = 'text';
+        document.getElementById('nextDateExact').checked = false;
+        
         window.filterCases();
     }
 
@@ -894,6 +982,9 @@ if ($result) {
     }
 
     function populateEditForm(caseData) {
+        // Debug: Log the case data
+        console.log('Populating edit form with case data:', caseData);
+
         // Reset counters
         editSuspectCounter = 0;
         editWitnessCounter = 0;
@@ -911,6 +1002,8 @@ if ($result) {
         parseAndPopulateRegisterNumber(caseData.register_number || '');
 
         document.getElementById('edit_information_book').value = caseData.information_book || '';
+        console.log('Setting information_book to:', caseData.information_book);
+
         document.getElementById('edit_date_produce_b_report').value = caseData.date_produce_b_report || '';
         document.getElementById('edit_date_produce_plant').value = caseData.date_produce_plant || '';
         document.getElementById('edit_date_handover_court').value = caseData.date_handover_court || '';

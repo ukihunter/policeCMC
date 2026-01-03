@@ -23,7 +23,8 @@ $register_number = trim($_POST['register_number'] ?? '');
 $date_produce_b_report = !empty($_POST['date_produce_b_report']) ? $_POST['date_produce_b_report'] : null;
 $date_produce_plant = !empty($_POST['date_produce_plant']) ? $_POST['date_produce_plant'] : null;
 $opens = trim($_POST['opens'] ?? '');
-$attorney_general_advice = !empty($_POST['attorney_general_advice']) ? $_POST['attorney_general_advice'] : null;
+// Handle ENUM fields - convert empty strings to NULL
+$attorney_general_advice = (!empty($_POST['attorney_general_advice']) && $_POST['attorney_general_advice'] !== '') ? $_POST['attorney_general_advice'] : null;
 
 // Handle production registers (arrays) - store as plain text with line breaks
 $production_registers = $_POST['production_registers'] ?? [];
@@ -36,8 +37,9 @@ for ($i = 0; $i < count($production_registers); $i++) {
 $production_register_number = implode("\n", $production_register_lines);
 
 $date_handover_court = !empty($_POST['date_handover_court']) ? $_POST['date_handover_court'] : null;
-$receival_memorandum = !empty($_POST['receival_memorandum']) ? $_POST['receival_memorandum'] : null;
-$analyst_report = !empty($_POST['analyst_report']) ? $_POST['analyst_report'] : null;
+// Handle ENUM fields - convert empty strings to NULL
+$receival_memorandum = (!empty($_POST['receival_memorandum']) && $_POST['receival_memorandum'] !== '') ? $_POST['receival_memorandum'] : null;
+$analyst_report = (!empty($_POST['analyst_report']) && $_POST['analyst_report'] !== '') ? $_POST['analyst_report'] : null;
 
 // Handle suspects (arrays)
 $suspect_names = $_POST['suspect_names'] ?? [];
