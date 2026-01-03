@@ -75,7 +75,7 @@ $stmt->close();
                             <span>Add New Case</span>
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <!--      <li class="nav-item">
                         <a class="nav-link" onclick="switchTab('search')">
                             <i class="fas fa-search"></i>
                             <span>Search / Filter</span>
@@ -86,7 +86,7 @@ $stmt->close();
                             <i class="fas fa-file-alt"></i>
                             <span>Reports & Print</span>
                         </a>
-                    </li>
+                    </li> -->
                 </ul>
 
                 <?php if ($is_admin): ?>

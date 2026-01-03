@@ -1057,60 +1057,71 @@ if ($result) {
         // Close modal
         window.closePrintModal();
 
-        if (bulkPrintMode) {
-            // Handle bulk print
-            generateBulkPrint(selectedFields, printLayout);
-        } else {
-            // Handle single case print
-            const printContent = window.generatePrintHTML(currentPrintCaseData, currentPrintHistory, selectedFields, printLayout);
+        // Fetch police station setting before printing
+        fetch('content/users/get_system_settings.php')
+            .then(response => response.json())
+            .then(data => {
+                const policeStation = data.success ? data.police_station : 'POLICE CASE MANAGEMENT';
 
-            // Create or update print container
-            let printContainer = document.getElementById('printContent');
-            if (!printContainer) {
-                printContainer = document.createElement('div');
-                printContainer.id = 'printContent';
-                document.body.appendChild(printContainer);
-            }
+                if (bulkPrintMode) {
+                    // Handle bulk print
+                    generateBulkPrint(selectedFields, printLayout, policeStation);
+                } else {
+                    // Handle single case print
+                    const printContent = window.generatePrintHTML(currentPrintCaseData, currentPrintHistory, selectedFields, printLayout, policeStation);
 
-            printContainer.innerHTML = printContent;
-
-            // Add dual-page class to body if needed
-            if (printLayout === 'dual') {
-                document.body.classList.add('dual-page-print');
-            } else {
-                document.body.classList.remove('dual-page-print');
-            }
-
-            // Small delay to ensure rendering
-            setTimeout(() => {
-                window.print();
-
-                // Log print activity
-                fetch('content/allCases/log_print.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        case_id: currentPrintCaseData.id,
-                        case_number: currentPrintCaseData.case_number,
-                        print_type: 'single'
-                    })
-                }).catch(err => console.error('Failed to log print activity:', err));
-
-                // Clean up after printing
-                setTimeout(() => {
-                    document.body.classList.remove('dual-page-print');
-                    // Remove print content from DOM
-                    if (printContainer) {
-                        printContainer.innerHTML = '';
+                    // Create or update print container
+                    let printContainer = document.getElementById('printContent');
+                    if (!printContainer) {
+                        printContainer = document.createElement('div');
+                        printContainer.id = 'printContent';
+                        document.body.appendChild(printContainer);
                     }
-                }, 1000);
-            }, 100);
-        }
+
+                    printContainer.innerHTML = printContent;
+
+                    // Add dual-page class to body if needed
+                    if (printLayout === 'dual') {
+                        document.body.classList.add('dual-page-print');
+                    } else {
+                        document.body.classList.remove('dual-page-print');
+                    }
+
+                    // Small delay to ensure rendering
+                    setTimeout(() => {
+                        window.print();
+
+                        // Log print activity
+                        fetch('content/allCases/log_print.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                case_id: currentPrintCaseData.id,
+                                case_number: currentPrintCaseData.case_number,
+                                print_type: 'single'
+                            })
+                        }).catch(err => console.error('Failed to log print activity:', err));
+
+                        // Clean up after printing
+                        setTimeout(() => {
+                            document.body.classList.remove('dual-page-print');
+                            // Remove print content from DOM
+                            if (printContainer) {
+                                printContainer.innerHTML = '';
+                            }
+                        }, 1000);
+                    }, 100);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching police station:', error);
+                alert('Error loading print settings');
+            });
     }
 
-    function generateBulkPrint(selectedFields, printLayout) {
+    function generateBulkPrint(selectedFields, printLayout, policeStation) {
         // Show loading message
         const bulkActions = document.getElementById('bulkActions');
         const originalHTML = bulkActions.innerHTML;
@@ -1146,7 +1157,7 @@ if ($result) {
                 }
 
                 // Generate bulk print HTML
-                const printContent = generateBulkPrintHTML(validCases, selectedFields, printLayout);
+                const printContent = generateBulkPrintHTML(validCases, selectedFields, printLayout, policeStation);
 
                 // Create or update print container
                 let printContainer = document.getElementById('printContent');
@@ -1204,7 +1215,7 @@ if ($result) {
             });
     }
 
-    function generateBulkPrintHTML(casesData, selectedFields, printLayout) {
+    function generateBulkPrintHTML(casesData, selectedFields, printLayout, policeStation = 'POLICE CASE MANAGEMENT') {
         const formatDate = (dateString) => {
             if (!dateString) return '';
             const date = new Date(dateString);
@@ -1281,13 +1292,13 @@ if ($result) {
         ];
 
         if (printLayout === 'dual') {
-            return generateBulkDualPageHTML(casesData, allColumns, formatDate);
+            return generateBulkDualPageHTML(casesData, allColumns, formatDate, policeStation);
         } else {
-            return generateBulkSinglePageHTML(casesData, allColumns, formatDate);
+            return generateBulkSinglePageHTML(casesData, allColumns, formatDate, policeStation);
         }
     }
 
-    function generateBulkDualPageHTML(casesData, columns, formatDate) {
+    function generateBulkDualPageHTML(casesData, columns, formatDate, policeStation) {
         const page1Columns = columns.slice(0, 7);
         const page2Columns = columns.slice(7);
 
@@ -1298,6 +1309,7 @@ if ($result) {
         <div class="page-1" style="font-family: 'Arial', sans-serif; padding: 5mm; width: 100%; box-sizing: border-box;">
             <div style="text-align: center; margin-bottom: 8px;">
                 <h1 style="color: #000; margin: 0; font-size: 18px; font-weight: bold;">POLICE CASE MANAGEMENT</h1>
+                <h2 style="color: #000; margin: 5px 0 0 0; font-size: 14px; font-weight: bold;">Police Station: ${policeStation}</h2>
                 <p style="color: #000; font-size: 11px; margin: 3px 0;">${casesData.length} Cases | ${new Date().toLocaleString('en-GB')}</p>
             </div>
             
@@ -1362,6 +1374,7 @@ if ($result) {
         <div class="page-2" style="font-family: 'Arial', sans-serif; padding: 5mm; width: 100%; box-sizing: border-box;">
             <div style="text-align: center; margin-bottom: 8px;">
                 <h1 style="color: #000; margin: 0; font-size: 18px; font-weight: bold;">POLICE CASE MANAGEMENT</h1>
+                <h2 style="color: #000; margin: 5px 0 0 0; font-size: 14px; font-weight: bold;">Police Station: ${policeStation}</h2>
                 <p style="color: #000; font-size: 11px; margin: 3px 0;">${casesData.length} Cases | ${new Date().toLocaleString('en-GB')}</p>
             </div>
             
@@ -1490,13 +1503,14 @@ if ($result) {
         }
     }
 
-    function generateBulkSinglePageHTML(casesData, columns, formatDate) {
+    function generateBulkSinglePageHTML(casesData, columns, formatDate, policeStation) {
         // Similar to single page but with multiple rows
         let htmlContent = `
         <div style="font-family: 'Arial', sans-serif; padding: 10px;">
             <div style="text-align: center; margin-bottom: 15px;">
-                <h1 style="color: #000; margin: 0; font-size: 16px; font-weight: bold;">POLICE CASE MANAGEMENT SYSTEM - ${casesData.length} Cases Report</h1>
-                <p style="color: #333; font-size: 9px; margin: 5px 0;">Generated on: ${new Date().toLocaleString('en-GB')}</p>
+                <h1 style="color: #000; margin: 0; font-size: 16px; font-weight: bold;">POLICE CASE MANAGEMENT SYSTEM</h1>
+                <h2 style="color: #000; margin: 5px 0 0 0; font-size: 13px; font-weight: bold;">Police Station: ${policeStation}</h2>
+                <p style="color: #333; font-size: 9px; margin: 5px 0;">${casesData.length} Cases Report | Generated on: ${new Date().toLocaleString('en-GB')}</p>
             </div>
             
             <table style="width: 100%; border-collapse: collapse; font-size: 9px; border: 1px solid #000;">
@@ -1549,7 +1563,7 @@ if ($result) {
         return htmlContent;
     }
 
-    window.generatePrintHTML = function(caseData, history, selectedFields, printLayout = 'single') {
+    window.generatePrintHTML = function(caseData, history, selectedFields, printLayout = 'single', policeStation = 'POLICE CASE MANAGEMENT') {
         const formatDate = (dateString) => {
             if (!dateString) return '';
             const date = new Date(dateString);
@@ -1716,18 +1730,19 @@ if ($result) {
         });
 
         if (printLayout === 'dual') {
-            return generateDualPageHTML(caseData, columns, formatDate);
+            return generateDualPageHTML(caseData, columns, formatDate, policeStation);
         } else {
-            return generateSinglePageHTML(caseData, columns, formatDate);
+            return generateSinglePageHTML(caseData, columns, formatDate, policeStation);
         }
     }
 
-    function generateSinglePageHTML(caseData, columns, formatDate) {
+    function generateSinglePageHTML(caseData, columns, formatDate, policeStation) {
         let htmlContent = `
         <div style="font-family: 'Arial', sans-serif; padding: 10px;">
             <div style="text-align: center; margin-bottom: 15px;">
-                <h1 style="color: #000; margin: 0; font-size: 16px; font-weight: bold;">POLICE CASE MANAGEMENT SYSTEM - Case Details Report</h1>
-                <p style="color: #333; font-size: 9px; margin: 5px 0;">Generated on: ${new Date().toLocaleString('en-GB')}</p>
+                <h1 style="color: #000; margin: 0; font-size: 16px; font-weight: bold;">POLICE CASE MANAGEMENT SYSTEM</h1>
+                <h2 style="color: #000; margin: 5px 0 0 0; font-size: 13px; font-weight: bold;">Police Station: ${policeStation}</h2>
+                <p style="color: #333; font-size: 9px; margin: 5px 0;">Case Details Report | Generated on: ${new Date().toLocaleString('en-GB')}</p>
             </div>
             
             <table style="width: 100%; border-collapse: collapse; font-size: 9px; border: 1px solid #000;">
@@ -1801,7 +1816,7 @@ if ($result) {
         return htmlContent;
     }
 
-    function generateDualPageHTML(caseData, columns, formatDate) {
+    function generateDualPageHTML(caseData, columns, formatDate, policeStation) {
         // Split columns into two groups for dual page printing
         // Page 1: First 7 columns (including sub-columns count)
         // Page 2: Remaining columns
@@ -1816,6 +1831,7 @@ if ($result) {
         <div class="page-1" style="font-family: 'Arial', sans-serif; width: 100%; box-sizing: border-box; margin: 0; padding: 0;">
             <div style="text-align: center; margin-bottom: 8px;">
                 <h1 style="color: #000; margin: 0; font-size: 18px; font-weight: bold;">POLICE CASE MANAGEMENT</h1>
+                <h2 style="color: #000; margin: 5px 0 0 0; font-size: 14px; font-weight: bold;">Police Station: ${policeStation}</h2>
                 <p style="color: #000; font-size: 11px; margin: 3px 0;">Case: ${caseData.case_number || 'N/A'} | ${new Date().toLocaleString('en-GB')}</p>
             </div>
             
@@ -1873,6 +1889,7 @@ if ($result) {
         <div class="page-2" style="font-family: 'Arial', sans-serif; width: 100%; box-sizing: border-box; margin: 0; padding: 0;">
             <div style="text-align: center; margin-bottom: 8px;">
                 <h1 style="color: #000; margin: 0; font-size: 18px; font-weight: bold;">POLICE CASE MANAGEMENT</h1>
+                <h2 style="color: #000; margin: 5px 0 0 0; font-size: 14px; font-weight: bold;">Police Station: ${policeStation}</h2>
                 <p style="color: #000; font-size: 11px; margin: 3px 0;">Case: ${caseData.case_number || 'N/A'} | ${new Date().toLocaleString('en-GB')}</p>
             </div>
             

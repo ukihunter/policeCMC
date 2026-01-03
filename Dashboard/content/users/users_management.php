@@ -31,6 +31,9 @@ $is_admin = ($current_user['role'] === 'admin');
             <button class="users-tab-btn" onclick="switchUserTab('activity-log')">
                 <i class="fas fa-history"></i> Activity Log
             </button>
+            <button class="users-tab-btn" onclick="switchUserTab('system-details')">
+                <i class="fas fa-cog"></i> Details
+            </button>
         <?php endif; ?>
     </div>
 
@@ -120,6 +123,47 @@ $is_admin = ($current_user['role'] === 'admin');
     <div id="activity-log-tab" class="users-tab-content">
         <?php include 'activity_log.php'; ?>
     </div>
+
+    <!-- System Details Tab (Admin Only) -->
+    <div id="system-details-tab" class="users-tab-content">
+        <div class="section-card">
+            <h3><i class="fas fa-cog"></i> System Details</h3>
+            <p class="section-description">Configure system-wide settings</p>
+
+            <form id="systemDetailsForm" class="user-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="police_station">
+                            <i class="fas fa-building"></i> Police Station *
+                        </label>
+                        <select id="police_station" name="police_station" required>
+                            <option value="">Select Police Station</option>
+                            <option value="Panadura south">Panadura south</option>
+                            <option value="Panadura north">Panadura north</option>
+                            <option value="Alubomulla">Alubomulla</option>
+                            <option value="Hirana">Hirana</option>
+                            <option value="Bandaragama">Bandaragama</option>
+                            <option value="Anguruwathota">Anguruwathota</option>
+                            <option value="Pinwatta">Pinwatta</option>
+                            <option value="Wadduwa">Wadduwa</option>
+                            <option value="Moronthuduwa">Moronthuduwa</option>
+                            <option value="Millaniya">Millaniya</option>
+                            <option value="Moragahahena">Moragahahena</option>
+                            <option value="Ingiriya">Ingiriya</option>
+                            <option value="Horana">Horana</option>
+                        </select>
+                        <small>This police station name will appear on all printed documents</small>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Save Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 <?php endif; ?>
 
 <!-- Add User Modal (Admin Only) -->
@@ -153,14 +197,30 @@ $is_admin = ($current_user['role'] === 'admin');
                             <label for="add_position">
                                 <i class="fas fa-briefcase"></i> Position
                             </label>
-                            <input type="text" id="add_position" name="position">
+                            <select id="add_position" name="position">
+                                <option value="">Select Position</option>
+                                <option value="HQI">HQI</option>
+                                <option value="OIC">OIC</option>
+                            </select>
                         </div>
 
                         <div class="form-group">
                             <label for="add_rank_title">
                                 <i class="fas fa-medal"></i> Rank Title
                             </label>
-                            <input type="text" id="add_rank_title" name="rank_title">
+                            <select id="add_rank_title" name="rank_title">
+                                <option value="">Select Rank</option>
+                                <option value="CI">CI</option>
+                                <option value="WCI">WCI</option>
+                                <option value="IP">IP</option>
+                                <option value="WIP">WIP</option>
+                                <option value="SI">SI</option>
+                                <option value="WSI">WSI</option>
+                                <option value="PS">PS</option>
+                                <option value="WPS">WPS</option>
+                                <option value="PC">PC</option>
+                                <option value="WPC">WPC</option>
+                            </select>
                         </div>
                     </div>
 
@@ -230,14 +290,30 @@ $is_admin = ($current_user['role'] === 'admin');
                             <label for="edit_position">
                                 <i class="fas fa-briefcase"></i> Position
                             </label>
-                            <input type="text" id="edit_position" name="position">
+                            <select id="edit_position" name="position">
+                                <option value="">Select Position</option>
+                                <option value="HQI">HQI</option>
+                                <option value="OIC">OIC</option>
+                            </select>
                         </div>
 
                         <div class="form-group">
                             <label for="edit_rank_title">
                                 <i class="fas fa-medal"></i> Rank Title
                             </label>
-                            <input type="text" id="edit_rank_title" name="rank_title">
+                            <select id="edit_rank_title" name="rank_title">
+                                <option value="">Select Rank</option>
+                                <option value="CI">CI</option>
+                                <option value="WCI">WCI</option>
+                                <option value="IP">IP</option>
+                                <option value="WIP">WIP</option>
+                                <option value="SI">SI</option>
+                                <option value="WSI">WSI</option>
+                                <option value="PS">PS</option>
+                                <option value="WPS">WPS</option>
+                                <option value="PC">PC</option>
+                                <option value="WPC">WPC</option>
+                            </select>
                         </div>
                     </div>
 
@@ -344,6 +420,10 @@ $is_admin = ($current_user['role'] === 'admin');
             if (typeof loadActivities === 'function') {
                 loadActivities(); // Load activities when tab is opened
             }
+        } else if (tabName === 'system-details') {
+            document.querySelectorAll('.users-tab-btn')[3].classList.add('active');
+            document.getElementById('system-details-tab').classList.add('active');
+            loadSystemSettings(); // Load system settings when tab is opened
         }
     }
 
@@ -443,6 +523,44 @@ $is_admin = ($current_user['role'] === 'admin');
                 showNotification('Error loading users', 'error');
             }
         }
+
+        // Load System Settings
+        async function loadSystemSettings() {
+            try {
+                const response = await fetch('content/users/get_system_settings.php');
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('police_station').value = data.police_station;
+                }
+            } catch (error) {
+                console.error('Error loading system settings:', error);
+            }
+        }
+
+        // System Details Form Submit
+        document.getElementById('systemDetailsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            try {
+                const response = await fetch('content/users/save_system_settings.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification(result.message, 'success');
+                } else {
+                    showNotification(result.message, 'error');
+                }
+            } catch (error) {
+                showNotification('Error saving settings', 'error');
+            }
+        });
 
         // Add User Modal Functions
         function openAddUserModal() {

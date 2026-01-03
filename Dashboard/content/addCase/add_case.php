@@ -10,6 +10,7 @@
                 <div class="form-group">
                     <label for="case_number">Case Number <span class="required">*</span></label>
                     <input type="text" id="case_number" name="case_number" required>
+                    <small id="case_number_feedback" style="display: none; margin-top: 5px;"></small>
                 </div>
                 <div class="form-group">
                     <label for="previous_date">Previous Date <span class="required">*</span></label>
@@ -485,6 +486,52 @@
         const addWitnessBtn = document.getElementById('addWitnessBtn');
         const resetFormBtn = document.getElementById('resetFormBtn');
         const addCaseForm = document.getElementById('addCaseForm');
+        const caseNumberInput = document.getElementById('case_number');
+
+        // Add case number validation
+        if (caseNumberInput) {
+            let checkTimeout;
+            caseNumberInput.addEventListener('input', function() {
+                const caseNumber = this.value.trim();
+                const feedback = document.getElementById('case_number_feedback');
+                
+                // Clear previous timeout
+                clearTimeout(checkTimeout);
+                
+                if (caseNumber.length === 0) {
+                    feedback.style.display = 'none';
+                    this.setCustomValidity('');
+                    return;
+                }
+                
+                // Show checking message
+                feedback.style.display = 'block';
+                feedback.style.color = '#666';
+                feedback.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+                
+                // Debounce the check
+                checkTimeout = setTimeout(() => {
+                    fetch('content/addCase/check_case_number.php?case_number=' + encodeURIComponent(caseNumber))
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.exists) {
+                                feedback.style.color = '#dc3545';
+                                feedback.innerHTML = '<i class="fas fa-exclamation-circle"></i> This case number already exists!';
+                                caseNumberInput.setCustomValidity('Case number already exists');
+                            } else {
+                                feedback.style.color = '#28a745';
+                                feedback.innerHTML = '<i class="fas fa-check-circle"></i> Case number is available';
+                                caseNumberInput.setCustomValidity('');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error checking case number:', error);
+                            feedback.style.display = 'none';
+                            caseNumberInput.setCustomValidity('');
+                        });
+                }, 500); // Wait 500ms after user stops typing
+            });
+        }
 
         if (addProductionBtn) {
             // Remove any existing listeners by cloning and replacing
@@ -563,6 +610,16 @@
                 } else {
                     messageContainer.innerHTML = '<div class="message error"><i class="fas fa-exclamation-circle"></i> ' + data.message + '</div>';
                     showError(data.message, 'Failed to Add Case');
+                    
+                    // If it's a duplicate case number error, highlight the field
+                    if (data.message.toLowerCase().includes('already exists') || data.message.toLowerCase().includes('duplicate')) {
+                        const caseNumberInput = document.getElementById('case_number');
+                        caseNumberInput.focus();
+                        caseNumberInput.style.borderColor = '#dc3545';
+                        setTimeout(() => {
+                            caseNumberInput.style.borderColor = '';
+                        }, 3000);
+                    }
                 }
             })
             .catch(error => {
