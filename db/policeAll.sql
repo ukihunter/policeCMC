@@ -40,20 +40,12 @@ CREATE TABLE IF NOT EXISTS `activity_logs` (
   KEY `idx_case_activity` (`case_id`,`created_at`),
   CONSTRAINT `activity_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `activity_logs_ibfk_2` FOREIGN KEY (`case_id`) REFERENCES `cases` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table police_cms.activity_logs: ~0 rows (approximately)
+-- Dumping data for table police_cms.activity_logs: ~1 rows (approximately)
 DELETE FROM `activity_logs`;
 INSERT INTO `activity_logs` (`id`, `user_id`, `user_name`, `activity_type`, `case_id`, `case_number`, `description`, `ip_address`, `user_agent`, `created_at`) VALUES
-	(1, 2, 'uki', 'logout', NULL, NULL, 'User logged out', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-01-03 09:35:23'),
-	(2, 1, 'Admin User', 'login', NULL, NULL, 'User logged in successfully', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-01-03 09:35:27'),
-	(3, 1, 'Admin User', 'user_edited', NULL, NULL, 'Updated user: uki (uki@gmail.com)', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-01-03 09:35:41'),
-	(4, 1, 'Admin User', 'logout', NULL, NULL, 'User logged out', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-01-03 09:35:47'),
-	(5, 2, 'uki', 'login', NULL, NULL, 'User logged in successfully', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-01-03 09:35:58'),
-	(6, 2, 'uki', 'logout', NULL, NULL, 'User logged out', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-01-03 09:36:05'),
-	(7, 1, 'Admin User', 'login', NULL, NULL, 'User logged in successfully', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-01-03 09:36:08'),
-	(8, 1, 'Admin User', 'case_added', NULL, NULL, 'user_edited', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-01-03 09:36:14'),
-	(9, 1, 'Admin User', 'case_added', 1, '3007001', 'Added new case: 3007001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-01-03 09:41:53');
+	(1, 1, 'Admin User', 'login', NULL, NULL, 'User logged in successfully', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-01-03 10:49:08');
 
 -- Dumping structure for table police_cms.cases
 CREATE TABLE IF NOT EXISTS `cases` (
@@ -88,12 +80,10 @@ CREATE TABLE IF NOT EXISTS `cases` (
   KEY `idx_case_status` (`case_status`),
   CONSTRAINT `cases_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `cases_ibfk_2` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Dumping data for table police_cms.cases: ~0 rows (approximately)
 DELETE FROM `cases`;
-INSERT INTO `cases` (`id`, `case_number`, `previous_date`, `information_book`, `register_number`, `date_produce_b_report`, `date_produce_plant`, `opens`, `attorney_general_advice`, `production_register_number`, `date_handover_court`, `government_analyst_report`, `receival_memorandum`, `analyst_report`, `suspect_data`, `witness_data`, `progress`, `results`, `next_date`, `case_status`, `created_by`, `created_at`, `updated_at`, `updated_by`) VALUES
-	(1, '3007001', '2026-01-12', 'CIB_III', 'MOR 10/2019', '2026-01-07', '2026-01-13', 'good', 'YES', 'PR-20002/345', '2026-01-20', NULL, 'YES', 'YES', '[{"name":"dasd","address":"sdsadsadsa","ic":"23213123"}]', '[{"name":"csdfdsf","address":"sadsadasdsad","ic":"1243123123"}]', 'sadasdasdasdsa', 'sadsadsad', NULL, 'Ongoing', 1, '2026-01-03 09:41:53', '2026-01-03 09:41:53', 1);
 
 -- Dumping structure for table police_cms.next_date_history
 CREATE TABLE IF NOT EXISTS `next_date_history` (
@@ -126,12 +116,10 @@ CREATE TABLE IF NOT EXISTS `system_settings` (
   UNIQUE KEY `setting_key` (`setting_key`),
   KEY `updated_by` (`updated_by`),
   CONSTRAINT `system_settings_ibfk_1` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Dumping data for table police_cms.system_settings: ~0 rows (approximately)
 DELETE FROM `system_settings`;
-INSERT INTO `system_settings` (`id`, `setting_key`, `setting_value`, `updated_by`, `updated_at`) VALUES
-	(1, 'police_station', 'Panadura south', 1, '2026-01-03 09:36:14');
 
 -- Dumping structure for table police_cms.users
 CREATE TABLE IF NOT EXISTS `users` (
