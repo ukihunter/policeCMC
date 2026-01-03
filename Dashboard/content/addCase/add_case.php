@@ -494,21 +494,21 @@
             caseNumberInput.addEventListener('input', function() {
                 const caseNumber = this.value.trim();
                 const feedback = document.getElementById('case_number_feedback');
-                
+
                 // Clear previous timeout
                 clearTimeout(checkTimeout);
-                
+
                 if (caseNumber.length === 0) {
                     feedback.style.display = 'none';
                     this.setCustomValidity('');
                     return;
                 }
-                
+
                 // Show checking message
                 feedback.style.display = 'block';
                 feedback.style.color = '#666';
                 feedback.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
-                
+
                 // Debounce the check
                 checkTimeout = setTimeout(() => {
                     fetch('content/addCase/check_case_number.php?case_number=' + encodeURIComponent(caseNumber))
@@ -610,7 +610,7 @@
                 } else {
                     messageContainer.innerHTML = '<div class="message error"><i class="fas fa-exclamation-circle"></i> ' + data.message + '</div>';
                     showError(data.message, 'Failed to Add Case');
-                    
+
                     // If it's a duplicate case number error, highlight the field
                     if (data.message.toLowerCase().includes('already exists') || data.message.toLowerCase().includes('duplicate')) {
                         const caseNumberInput = document.getElementById('case_number');

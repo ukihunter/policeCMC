@@ -28,4 +28,3 @@ echo json_encode(['exists' => $result->num_rows > 0]);
 
 $stmt->close();
 $conn->close();
-?>
