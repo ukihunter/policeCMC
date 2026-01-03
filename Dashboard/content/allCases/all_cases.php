@@ -611,7 +611,7 @@ if ($result) {
         document.getElementById('filterRegister').value = '';
         document.getElementById('filterAttorneyAdvice').value = '';
         document.getElementById('filterAnalystReport').value = '';
-        
+
         // Clear Previous Date filters
         document.getElementById('prevDateFrom').value = '';
         document.getElementById('prevDateTo').value = '';
@@ -619,7 +619,7 @@ if ($result) {
         document.getElementById('prevDateTo').style.opacity = '1';
         document.getElementById('prevDateTo').style.cursor = 'text';
         document.getElementById('prevDateExact').checked = false;
-        
+
         // Clear B Report Date filters
         document.getElementById('bReportDateFrom').value = '';
         document.getElementById('bReportDateTo').value = '';
@@ -627,7 +627,7 @@ if ($result) {
         document.getElementById('bReportDateTo').style.opacity = '1';
         document.getElementById('bReportDateTo').style.cursor = 'text';
         document.getElementById('bReportDateExact').checked = false;
-        
+
         // Clear Plant Date filters
         document.getElementById('plantDateFrom').value = '';
         document.getElementById('plantDateTo').value = '';
@@ -635,7 +635,7 @@ if ($result) {
         document.getElementById('plantDateTo').style.opacity = '1';
         document.getElementById('plantDateTo').style.cursor = 'text';
         document.getElementById('plantDateExact').checked = false;
-        
+
         // Clear Handover Date filters
         document.getElementById('handoverDateFrom').value = '';
         document.getElementById('handoverDateTo').value = '';
@@ -643,7 +643,7 @@ if ($result) {
         document.getElementById('handoverDateTo').style.opacity = '1';
         document.getElementById('handoverDateTo').style.cursor = 'text';
         document.getElementById('handoverDateExact').checked = false;
-        
+
         // Clear Next Date filters
         document.getElementById('nextDateFrom').value = '';
         document.getElementById('nextDateTo').value = '';
@@ -651,7 +651,7 @@ if ($result) {
         document.getElementById('nextDateTo').style.opacity = '1';
         document.getElementById('nextDateTo').style.cursor = 'text';
         document.getElementById('nextDateExact').checked = false;
-        
+
         window.filterCases();
     }
 
