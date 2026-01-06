@@ -70,7 +70,7 @@ foreach ($date_filters as $param => $column) {
     $fromParam = $param . 'From';
     $toParam = $param . 'To';
     $exactParam = $param . 'Exact';
-    
+
     if (!empty($_GET[$fromParam]) || !empty($_GET[$toParam])) {
         if (!empty($_GET[$exactParam]) && $_GET[$exactParam] === 'true') {
             // Exact date match
@@ -125,9 +125,9 @@ $sql = "SELECT c.*,
         u2.full_name as updated_by_name
         FROM cases c
         LEFT JOIN users u1 ON c.created_by = u1.id
-        LEFT JOIN users u2 ON c.updated_by = u2.id" . 
-        $where_sql . 
-        " ORDER BY c.created_at DESC
+        LEFT JOIN users u2 ON c.updated_by = u2.id" .
+    $where_sql .
+    " ORDER BY c.created_at DESC
         LIMIT $cases_per_page OFFSET $offset";
 
 $cases = [];
@@ -649,19 +649,19 @@ if (!empty($params)) {
         const prevDateFrom = document.getElementById('prevDateFrom').value;
         const prevDateTo = document.getElementById('prevDateTo').value;
         const prevDateExact = document.getElementById('prevDateExact').checked;
-        
+
         const bReportDateFrom = document.getElementById('bReportDateFrom').value;
         const bReportDateTo = document.getElementById('bReportDateTo').value;
         const bReportDateExact = document.getElementById('bReportDateExact').checked;
-        
+
         const plantDateFrom = document.getElementById('plantDateFrom').value;
         const plantDateTo = document.getElementById('plantDateTo').value;
         const plantDateExact = document.getElementById('plantDateExact').checked;
-        
+
         const handoverDateFrom = document.getElementById('handoverDateFrom').value;
         const handoverDateTo = document.getElementById('handoverDateTo').value;
         const handoverDateExact = document.getElementById('handoverDateExact').checked;
-        
+
         const nextDateFrom = document.getElementById('nextDateFrom').value;
         const nextDateTo = document.getElementById('nextDateTo').value;
         const nextDateExact = document.getElementById('nextDateExact').checked;
@@ -669,7 +669,7 @@ if (!empty($params)) {
         // Build URL with filter parameters
         const params = new URLSearchParams();
         params.set('page', '1'); // Reset to page 1 when filtering
-        
+
         if (searchCaseNumber) params.set('searchCaseNumber', searchCaseNumber);
         if (searchRegister) params.set('searchRegister', searchRegister);
         if (searchInfoBook) params.set('searchInfoBook', searchInfoBook);
@@ -677,24 +677,24 @@ if (!empty($params)) {
         if (filterRegister) params.set('filterRegister', filterRegister);
         if (filterAttorneyAdvice) params.set('filterAttorneyAdvice', filterAttorneyAdvice);
         if (filterAnalystReport) params.set('filterAnalystReport', filterAnalystReport);
-        
+
         // Date filters
         if (prevDateFrom) params.set('prevDateFrom', prevDateFrom);
         if (prevDateTo) params.set('prevDateTo', prevDateTo);
         if (prevDateExact) params.set('prevDateExact', 'true');
-        
+
         if (bReportDateFrom) params.set('bReportDateFrom', bReportDateFrom);
         if (bReportDateTo) params.set('bReportDateTo', bReportDateTo);
         if (bReportDateExact) params.set('bReportDateExact', 'true');
-        
+
         if (plantDateFrom) params.set('plantDateFrom', plantDateFrom);
         if (plantDateTo) params.set('plantDateTo', plantDateTo);
         if (plantDateExact) params.set('plantDateExact', 'true');
-        
+
         if (handoverDateFrom) params.set('handoverDateFrom', handoverDateFrom);
         if (handoverDateTo) params.set('handoverDateTo', handoverDateTo);
         if (handoverDateExact) params.set('handoverDateExact', 'true');
-        
+
         if (nextDateFrom) params.set('nextDateFrom', nextDateFrom);
         if (nextDateTo) params.set('nextDateTo', nextDateTo);
         if (nextDateExact) params.set('nextDateExact', 'true');
@@ -708,12 +708,15 @@ if (!empty($params)) {
         if (casesContent) {
             // We're in the dashboard - load via AJAX
             casesContent.innerHTML = '<h2><i class="fas fa-folder-open"></i> All Cases</h2><p>Filtering cases...</p>';
-            
+
             fetch('content/allCases/all_cases.php?' + params.toString())
                 .then(response => response.text())
                 .then(data => {
                     casesContent.innerHTML = data;
-                    casesContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    casesContent.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
                 })
                 .catch(error => {
                     console.error('Error filtering cases:', error);
@@ -2320,27 +2323,27 @@ if (!empty($params)) {
             }
         }
         ?>
-        
+
         console.log('Restoring filters:', params.toString());
-        
+
         // Text search filters
         const searchCaseNumber = document.getElementById('searchCaseNumber');
         const searchRegister = document.getElementById('searchRegister');
         const searchInfoBook = document.getElementById('searchInfoBook');
-        
-        if (searchCaseNumber && params.has('searchCaseNumber')) 
+
+        if (searchCaseNumber && params.has('searchCaseNumber'))
             searchCaseNumber.value = params.get('searchCaseNumber');
-        if (searchRegister && params.has('searchRegister')) 
+        if (searchRegister && params.has('searchRegister'))
             searchRegister.value = params.get('searchRegister');
-        if (searchInfoBook && params.has('searchInfoBook')) 
+        if (searchInfoBook && params.has('searchInfoBook'))
             searchInfoBook.value = params.get('searchInfoBook');
-        
+
         // Dropdown filters
         const filterInfoBook = document.getElementById('filterInfoBook');
         const filterRegister = document.getElementById('filterRegister');
         const filterAttorneyAdvice = document.getElementById('filterAttorneyAdvice');
         const filterAnalystReport = document.getElementById('filterAnalystReport');
-        
+
         if (filterInfoBook && params.has('filterInfoBook')) {
             const value = params.get('filterInfoBook');
             filterInfoBook.value = value;
@@ -2351,45 +2354,45 @@ if (!empty($params)) {
             filterRegister.value = value;
             console.log('Set filterRegister to:', value, 'Actual value now:', filterRegister.value);
         }
-        if (filterAttorneyAdvice && params.has('filterAttorneyAdvice')) 
+        if (filterAttorneyAdvice && params.has('filterAttorneyAdvice'))
             filterAttorneyAdvice.value = params.get('filterAttorneyAdvice');
-        if (filterAnalystReport && params.has('filterAnalystReport')) 
+        if (filterAnalystReport && params.has('filterAnalystReport'))
             filterAnalystReport.value = params.get('filterAnalystReport');
-        
+
         // Date filters
-        if (params.has('prevDateFrom')) 
+        if (params.has('prevDateFrom'))
             document.getElementById('prevDateFrom').value = params.get('prevDateFrom');
-        if (params.has('prevDateTo')) 
+        if (params.has('prevDateTo'))
             document.getElementById('prevDateTo').value = params.get('prevDateTo');
-        if (params.has('prevDateExact')) 
+        if (params.has('prevDateExact'))
             document.getElementById('prevDateExact').checked = true;
-        
-        if (params.has('bReportDateFrom')) 
+
+        if (params.has('bReportDateFrom'))
             document.getElementById('bReportDateFrom').value = params.get('bReportDateFrom');
-        if (params.has('bReportDateTo')) 
+        if (params.has('bReportDateTo'))
             document.getElementById('bReportDateTo').value = params.get('bReportDateTo');
-        if (params.has('bReportDateExact')) 
+        if (params.has('bReportDateExact'))
             document.getElementById('bReportDateExact').checked = true;
-        
-        if (params.has('plantDateFrom')) 
+
+        if (params.has('plantDateFrom'))
             document.getElementById('plantDateFrom').value = params.get('plantDateFrom');
-        if (params.has('plantDateTo')) 
+        if (params.has('plantDateTo'))
             document.getElementById('plantDateTo').value = params.get('plantDateTo');
-        if (params.has('plantDateExact')) 
+        if (params.has('plantDateExact'))
             document.getElementById('plantDateExact').checked = true;
-        
-        if (params.has('handoverDateFrom')) 
+
+        if (params.has('handoverDateFrom'))
             document.getElementById('handoverDateFrom').value = params.get('handoverDateFrom');
-        if (params.has('handoverDateTo')) 
+        if (params.has('handoverDateTo'))
             document.getElementById('handoverDateTo').value = params.get('handoverDateTo');
-        if (params.has('handoverDateExact')) 
+        if (params.has('handoverDateExact'))
             document.getElementById('handoverDateExact').checked = true;
-        
-        if (params.has('nextDateFrom')) 
+
+        if (params.has('nextDateFrom'))
             document.getElementById('nextDateFrom').value = params.get('nextDateFrom');
-        if (params.has('nextDateTo')) 
+        if (params.has('nextDateTo'))
             document.getElementById('nextDateTo').value = params.get('nextDateTo');
-        if (params.has('nextDateExact')) 
+        if (params.has('nextDateExact'))
             document.getElementById('nextDateExact').checked = true;
     })();
 </script>
