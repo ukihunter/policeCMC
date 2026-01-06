@@ -149,3 +149,16 @@ INSERT INTO `users` (`id`, `full_name`, `email`, `password`, `position`, `rank_t
 /*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;
+
+
+
+USE police_cms;
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+TRUNCATE TABLE activity_logs;
+TRUNCATE TABLE next_date_history;
+TRUNCATE TABLE cases;
+
+SET FOREIGN_KEY_CHECKS = 1;
+users

@@ -151,7 +151,9 @@ $is_admin = ($current_user['role'] === 'admin');
                             <option value="Moragahahena">Moragahahena</option>
                             <option value="Ingiriya">Ingiriya</option>
                             <option value="Horana">Horana</option>
+                            <option value="CUSTOM">Other (Type Custom Value)</option>
                         </select>
+                        <input type="text" id="police_station_custom" name="police_station_custom" style="display:none; margin-top: 10px;" placeholder="Type custom Police Station">
                         <small>This police station name will appear on all printed documents</small>
                     </div>
                 </div>
@@ -531,7 +533,26 @@ $is_admin = ($current_user['role'] === 'admin');
                 const data = await response.json();
 
                 if (data.success) {
-                    document.getElementById('police_station').value = data.police_station;
+                    const policeStationSelect = document.getElementById('police_station');
+                    const policeStationCustom = document.getElementById('police_station_custom');
+                    const savedValue = data.police_station;
+
+                    // Check if saved value exists in the dropdown options
+                    const optionExists = Array.from(policeStationSelect.options).some(
+                        option => option.value === savedValue && option.value !== 'CUSTOM'
+                    );
+
+                    if (optionExists) {
+                        // Standard value - just select it
+                        policeStationSelect.value = savedValue;
+                    } else if (savedValue) {
+                        // Custom value - select CUSTOM and populate custom input
+                        policeStationSelect.value = 'CUSTOM';
+                        policeStationCustom.value = savedValue;
+                        policeStationCustom.style.display = 'block';
+                        policeStationCustom.required = true;
+                        policeStationSelect.required = false;
+                    }
                 }
             } catch (error) {
                 console.error('Error loading system settings:', error);
@@ -543,6 +564,15 @@ $is_admin = ($current_user['role'] === 'admin');
             e.preventDefault();
 
             const formData = new FormData(this);
+
+            // Handle custom police station
+            const policeStation = formData.get('police_station');
+            const customValue = formData.get('police_station_custom');
+
+            if (policeStation === 'CUSTOM' && customValue) {
+                formData.set('police_station', customValue);
+            }
+            formData.delete('police_station_custom');
 
             try {
                 const response = await fetch('content/users/save_system_settings.php', {
@@ -572,12 +602,33 @@ $is_admin = ($current_user['role'] === 'admin');
             document.getElementById('addUserForm').reset();
         }
 
+        // Police Station Custom Input Handler
+        document.getElementById('police_station').addEventListener('change', function() {
+            const customInput = document.getElementById('police_station_custom');
+            if (this.value === 'CUSTOM') {
+                customInput.style.display = 'block';
+                customInput.required = true;
+                this.required = false;
+            } else {
+                customInput.style.display = 'none';
+                customInput.required = false;
+                customInput.value = '';
+                this.required = true;
+            }
+        });
+
         // Add User Form Submit
         document.getElementById('addUserForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const formData = new FormData(this);
             const data = Object.fromEntries(formData);
+
+            // Handle custom police station
+            if (data.police_station === 'CUSTOM') {
+                data.police_station = data.police_station_custom;
+            }
+            delete data.police_station_custom;
 
             try {
                 const response = await fetch('content/users/add_user.php', {

@@ -6,7 +6,7 @@
             <span class="close-modal" onclick="closeEditModal()">&times;</span>
         </div>
         <div class="modal-body" id="editModalBody">
-            <form id="editCaseForm">
+            <form id="editCaseForm" method="post" onsubmit="return false;">
                 <input type="hidden" id="edit_case_id" name="case_id">
 
                 <div class="form-section">
@@ -27,7 +27,7 @@
                             <div style="display: grid; grid-template-columns: 2fr 2fr 1fr; gap: 15px;">
                                 <div style="display: flex; flex-direction: column; gap: 5px;">
                                     <label for="edit_register_type" style="font-size: 13px; font-weight: 500;">Register Type *</label>
-                                    <select id="edit_register_type" name="register_type" required>
+                                    <select id="edit_register_type" name="register_type">
                                         <option value="">-- Select Register Type --</option>
                                         <option value="GCR">GCR</option>
                                         <option value="MOR">MOR</option>
@@ -43,7 +43,7 @@
                                 </div>
                                 <div style="display: flex; flex-direction: column; gap: 5px;">
                                     <label for="edit_register_month" style="font-size: 13px; font-weight: 500;">Register Month *</label>
-                                    <select id="edit_register_month" name="register_month" required>
+                                    <select id="edit_register_month" name="register_month">
                                         <option value="">-- Select Month --</option>
                                         <option value="01">January</option>
                                         <option value="02">February</option>
@@ -61,26 +61,27 @@
                                 </div>
                                 <div style="display: flex; flex-direction: column; gap: 5px;">
                                     <label for="edit_register_year" style="font-size: 13px; font-weight: 500;">Register Year *</label>
-                                    <input type="text" id="edit_register_year" name="register_year" required
+                                    <input type="text" id="edit_register_year" name="register_year"
                                         placeholder="YYYY" maxlength="4" pattern="[0-9]{4}">
                                 </div>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="edit_register_number_display">Register Number (Auto-generated)</label>
-                            <input type="text" id="edit_register_number_display" readonly
-                                style="background-color: #f3f4f6; cursor: not-allowed;"
-                                placeholder="Will be generated from selections above">
+                            <label for="edit_register_number_display">Register Number</label>
+                            <input type="text" id="edit_register_number_display"
+                                style="background-color: #f3f4f6;"
+                                placeholder="Will be generated from selections above or enter manually">
                             <input type="hidden" id="edit_register_number" name="register_number">
+                            <small style="color: #6b7280; font-size: 12px; margin-top: 4px; display: block;">Auto-generated from selections, but you can edit it manually</small>
                         </div>
                         <div class="form-group full-width">
                             <label for="edit_information_book">Information Book *</label>
-                            <select id="edit_information_book" name="information_book" required>
+                            <select id="edit_information_book" name="information_book" required style="padding: 10px 15px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 14px; font-family: inherit;">
                                 <option value="">Select Information Book</option>
                                 <option value="RIB">RIB</option>
-                                <option value="GCIB_I">GCIB I</option>
-                                <option value="GCIB_II">GCIB II</option>
-                                <option value="GCIB_III">GCIB III</option>
+                                <option value="GCIB I">GCIB I</option>
+                                <option value="GCIB II">GCIB II</option>
+                                <option value="GCIB III">GCIB III</option>
                                 <option value="MOIB">MOIB</option>
                                 <option value="VIB">VIB</option>
                                 <option value="EIB">EIB</option>
@@ -89,15 +90,18 @@
                                 <option value="PIB">PIB</option>
                                 <option value="TIB">TIB</option>
                                 <option value="AIB">AIB</option>
-                                <option value="CIB_I">CIB I</option>
-                                <option value="CIB_II">CIB II</option>
-                                <option value="CIB_III">CIB III</option>
-                                <option value="119_IB">119 IB</option>
+                                <option value="CIB I">CIB I</option>
+                                <option value="CIB II">CIB II</option>
+                                <option value="CIB III">CIB III</option>
+                                <option value="119 IB">119 IB</option>
                                 <option value="TR">TR</option>
-                                <option value="119_TR">119 TR</option>
-                                <option value="VPN_TR">VPN TR</option>
-                                <option value="118_TR">118 TR</option>
+                                <option value="119 TR">119 TR</option>
+                                <option value="VPN TR">VPN TR</option>
+                                <option value="118 TR">118 TR</option>
+                                <option value="CUSTOM">Other (Type Custom Value)</option>
                             </select>
+                            <input type="text" id="edit_information_book_custom" name="information_book_custom" style="display:none; margin-top: 10px; padding: 10px 15px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 14px; width: 100%;" placeholder="Type custom Information Book">
+                            <small style="color: #6b7280; font-size: 12px; margin-top: 4px; display: block;">Select from dropdown or choose "Other" to type custom value</small>
                         </div>
                     </div>
                 </div>
@@ -218,7 +222,7 @@
                     <button type="button" class="btn-secondary" onclick="closeEditModal()">
                         <i class="fas fa-times"></i> Cancel
                     </button>
-                    <button type="submit" class="btn-primary">
+                    <button type="submit" id="saveChangesBtn" class="btn-primary">
                         <i class="fas fa-save"></i> Save Changes
                     </button>
                 </div>
@@ -428,11 +432,32 @@
     let editSuspectCounter = 0;
     let editWitnessCounter = 0;
 
+    // Handle Information Book change - set up when modal is ready
+    setTimeout(function() {
+        const infoBookSelect = document.getElementById('edit_information_book');
+        if (infoBookSelect) {
+            infoBookSelect.addEventListener('change', function() {
+                const customInput = document.getElementById('edit_information_book_custom');
+                if (customInput) {
+                    if (this.value === 'CUSTOM') {
+                        customInput.style.display = 'block';
+                        customInput.required = true;
+                        this.required = false;
+                    } else {
+                        customInput.style.display = 'none';
+                        customInput.required = false;
+                        this.required = true;
+                    }
+                }
+            });
+        }
+    }, 100);
+
     function closeEditModal() {
         document.getElementById('editCaseModal').style.display = 'none';
     }
 
-    function addEditSuspect(suspectData = null) {
+    window.addEditSuspect = function(suspectData = null) {
         const container = document.getElementById('edit_suspects_container');
         const index = editSuspectCounter++;
 
@@ -472,14 +497,14 @@
         container.insertAdjacentHTML('beforeend', suspectHtml);
     }
 
-    function removeEditSuspect(index) {
+    window.removeEditSuspect = function(index) {
         const element = document.getElementById('edit_suspect_' + index);
         if (element) {
             element.remove();
         }
     }
 
-    function addEditWitness(witnessData = null) {
+    window.addEditWitness = function(witnessData = null) {
         const container = document.getElementById('edit_witnesses_container');
         const index = editWitnessCounter++;
 
@@ -519,23 +544,45 @@
         container.insertAdjacentHTML('beforeend', witnessHtml);
     }
 
-    function removeEditWitness(index) {
+    window.removeEditWitness = function(index) {
         const element = document.getElementById('edit_witness_' + index);
         if (element) {
             element.remove();
         }
     }
 
-    // Handle form submission
-    document.getElementById('editCaseForm').addEventListener('submit', function(e) {
+    // Function to handle form submission (will be called from attachEditFormHandlers)
+    function handleEditFormSubmit(e) {
         e.preventDefault();
+        console.log('✓ Form submit handler triggered');
 
-        const formData = new FormData(this);
-        const submitBtn = this.querySelector('button[type="submit"]');
+        const form = document.getElementById('editCaseForm');
+        if (!form) {
+            console.error('Form not found in submit handler');
+            return;
+        }
+
+        const formData = new FormData(form);
+
+        // Handle custom information book
+        const infoBookSelect = document.getElementById('edit_information_book');
+        const infoBookCustom = document.getElementById('edit_information_book_custom');
+        if (infoBookSelect && infoBookSelect.value === 'CUSTOM' && infoBookCustom) {
+            formData.set('information_book', infoBookCustom.value);
+        }
+
+        const submitBtn = document.getElementById('saveChangesBtn');
+        if (!submitBtn) {
+            console.error('Save button not found');
+            return;
+        }
+
         const originalText = submitBtn.innerHTML;
 
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        console.log('Sending update request...');
 
         fetch('content/allCases/update_case.php', {
                 method: 'POST',
@@ -543,6 +590,7 @@
             })
             .then(response => response.json())
             .then(data => {
+                console.log('Update response:', data);
                 if (data.success) {
                     showSuccess('Case updated successfully!', 'Success');
                     closeEditModal();
@@ -563,7 +611,56 @@
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
             });
-    });
+    }
+
+    // Attach event handlers to edit form (call this after populating the form)
+    function attachEditFormHandlers() {
+        const editForm = document.getElementById('editCaseForm');
+        if (!editForm) {
+            console.error('Edit form not found');
+            return;
+        }
+
+        // Remove existing submit handler first (if any) to prevent duplicates
+        // We'll use removeEventListener with a named function
+        editForm.removeEventListener('submit', handleEditFormSubmit);
+
+        // Attach new event listener
+        editForm.addEventListener('submit', handleEditFormSubmit);
+        console.log('✓ Edit form submit handler attached');
+
+        // Attach Information Book change handler
+        const infoBookSelect = document.getElementById('edit_information_book');
+        const infoBookCustom = document.getElementById('edit_information_book_custom');
+
+        if (infoBookSelect && infoBookCustom) {
+            // Remove old listener first
+            const oldHandler = infoBookSelect._changeHandler;
+            if (oldHandler) {
+                infoBookSelect.removeEventListener('change', oldHandler);
+            }
+
+            // Create new handler and store reference
+            const newHandler = function() {
+                if (this.value === 'CUSTOM') {
+                    infoBookCustom.style.display = 'block';
+                    infoBookCustom.required = true;
+                } else {
+                    infoBookCustom.style.display = 'none';
+                    infoBookCustom.required = false;
+                    infoBookCustom.value = '';
+                }
+            };
+
+            infoBookSelect._changeHandler = newHandler;
+            infoBookSelect.addEventListener('change', newHandler);
+            console.log('✓ Information Book change handler attached');
+        } else {
+            console.error('✗ Information Book elements not found for event handler');
+        }
+
+        console.log('✓ Edit form handlers attached successfully');
+    }
 
     // Function to update a single case row without reloading the entire page
     function updateCaseRow(caseData) {
@@ -643,11 +740,6 @@
         return div.innerHTML;
     }
 
-    // Close modal when clicking outside
-    window.addEventListener('click', function(event) {
-        const editModal = document.getElementById('editCaseModal');
-        if (event.target == editModal) {
-            closeEditModal();
-        }
-    });
+    // Outside click is DISABLED to prevent accidental data loss
+    // Modal can only be closed using Save, Cancel, or X close button
 </script>

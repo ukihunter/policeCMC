@@ -3,7 +3,7 @@
 
     <div id="message-container"></div>
 
-    <form id="addCaseForm" class="case-form">
+    <form id="addCaseForm" class="case-form" method="post" onsubmit="return false;">
         <div class="form-section">
             <h3>Basic Information</h3>
             <div class="form-row">
@@ -20,34 +20,37 @@
 
             <div class="form-group">
                 <label for="information_book">Information Book <span class="required">*</span></label>
-                <select name="information_book" id="information_book" required>
-                    <option value="">-- Information Book --</option>
-
+                <select id="information_book" name="information_book" required>
+                    <option value="">-- Select Information Book --</option>
                     <option value="RIB">RIB</option>
-                    <option value="GCIB_I">GCIB I</option>
-                    <option value="GCIB_II">GCIB II</option>
-                    <option value="GCIB_III">GCIB III</option>
+                    <option value="GCIB I">GCIB I</option>
+                    <option value="GCIB II">GCIB II</option>
+                    <option value="GCIB III">GCIB III</option>
                     <option value="MOIB">MOIB</option>
                     <option value="VIB">VIB</option>
-
                     <option value="EIB">EIB</option>
                     <option value="CPUIB">CPUIB</option>
                     <option value="WCIB">WCIB</option>
-
                     <option value="PIB">PIB</option>
                     <option value="TIB">TIB</option>
                     <option value="AIB">AIB</option>
-
-                    <option value="CIB_I">CIB I</option>
-                    <option value="CIB_II">CIB II</option>
-                    <option value="CIB_III">CIB III</option>
-                    <option value="119_IB">119 IB</option>
-
+                    <option value="CIB I">CIB I</option>
+                    <option value="CIB II">CIB II</option>
+                    <option value="CIB III">CIB III</option>
+                    <option value="119 IB">119 IB</option>
                     <option value="TR">TR</option>
-                    <option value="119_TR">119 TR</option>
-                    <option value="VPN_TR">VPN TR</option>
-                    <option value="118_TR">118 TR</option>
+                    <option value="119 TR">119 TR</option>
+                    <option value="VPN TR">VPN TR</option>
+                    <option value="118 TR">118 TR</option>
+                    <option value="CUSTOM">Other (Type Custom Value)</option>
                 </select>
+                <input type="text"
+                    id="information_book_custom"
+                    name="information_book_custom"
+                    class="form-control"
+                    style="display: none; margin-top: 10px; width: 100%;"
+                    placeholder="Type custom Information Book value">
+                <small style="color: #6b7280; font-size: 12px; margin-top: 4px; display: block;">Select from dropdown or choose "Other" to type custom value</small>
             </div>
 
             <div class="form-row">
@@ -103,7 +106,8 @@
             </div>
             <div class="form-group">
                 <label>Full Register Number</label>
-                <input type="text" id="register_number_display" readonly style="background-color: #f3f4f6; cursor: not-allowed;" placeholder="Will be generated from selections above">
+                <input type="text" id="register_number_display" style="background-color: #f3f4f6;" placeholder="Will be generated from selections above">
+
                 <input type="hidden" id="register_number" name="register_number">
             </div>
 
@@ -311,6 +315,11 @@
     document.getElementById('register_type').addEventListener('change', updateRegisterNumber);
     document.getElementById('register_month').addEventListener('change', updateRegisterNumber);
     document.getElementById('register_year').addEventListener('input', updateRegisterNumber);
+
+    // Allow manual editing of register number display and sync with hidden field
+    document.getElementById('register_number_display').addEventListener('input', function() {
+        document.getElementById('register_number').value = this.value;
+    });
 
     // Production Register Management
     let productionCount = 0;
@@ -558,6 +567,41 @@
             addCaseForm.removeEventListener('submit', handleFormSubmit);
             addCaseForm.addEventListener('submit', handleFormSubmit);
         }
+
+        // Setup Information Book custom field handler
+        const infoBookSelect = document.getElementById('information_book');
+        const infoBookCustom = document.getElementById('information_book_custom');
+
+        console.log('Initializing Information Book handler...', {
+            select: infoBookSelect,
+            custom: infoBookCustom
+        });
+
+        if (infoBookSelect && infoBookCustom) {
+            infoBookSelect.addEventListener('change', function() {
+                console.log('Information Book changed to:', this.value);
+                if (this.value === 'CUSTOM') {
+                    console.log('Showing custom field');
+                    infoBookCustom.style.display = 'block';
+                    infoBookCustom.required = true;
+                    setTimeout(() => {
+                        infoBookCustom.focus();
+                        console.log('Custom field focused');
+                    }, 100);
+                } else {
+                    console.log('Hiding custom field');
+                    infoBookCustom.style.display = 'none';
+                    infoBookCustom.required = false;
+                    infoBookCustom.value = '';
+                }
+            });
+            console.log('Information Book handler attached successfully');
+        } else {
+            console.error('Failed to initialize Information Book handler', {
+                selectFound: !!infoBookSelect,
+                customFound: !!infoBookCustom
+            });
+        }
     }
 
     // Initialize immediately since content is loaded dynamically
@@ -567,6 +611,19 @@
         e.preventDefault();
 
         const formData = new FormData(this);
+
+        // Handle custom information book
+        const infoBookSelect = document.getElementById('information_book');
+        const infoBookCustom = document.getElementById('information_book_custom');
+        if (infoBookSelect.value === 'CUSTOM') {
+            if (!infoBookCustom.value.trim()) {
+                showError('Please enter a custom Information Book value', 'Validation Error');
+                infoBookCustom.focus();
+                return;
+            }
+            formData.set('information_book', infoBookCustom.value.trim());
+        }
+
         const messageContainer = document.getElementById('message-container');
 
         // Show loading state
@@ -595,35 +652,22 @@
                     document.getElementById('register_number_display').value = '';
                     document.getElementById('register_number').value = '';
 
+                    // Hide and clear custom information book field
+                    const infoBookCustom = document.getElementById('information_book_custom');
+                    if (infoBookCustom) {
+                        infoBookCustom.style.display = 'none';
+                        infoBookCustom.value = '';
+                        infoBookCustom.required = false;
+                    }
+
                     // Scroll to top to show message
                     document.querySelector('.add-case-container').scrollTop = 0;
-
-                    // Hide message after 5 seconds
-                    setTimeout(() => {
-                        messageContainer.innerHTML = '';
-                    }, 5000);
-
-                    // Reload dashboard stats if on dashboard
-                    if (typeof loadDashboardStats === 'function') {
-                        loadDashboardStats();
-                    }
                 } else {
                     messageContainer.innerHTML = '<div class="message error"><i class="fas fa-exclamation-circle"></i> ' + data.message + '</div>';
-                    showError(data.message, 'Failed to Add Case');
-
-                    // If it's a duplicate case number error, highlight the field
-                    if (data.message.toLowerCase().includes('already exists') || data.message.toLowerCase().includes('duplicate')) {
-                        const caseNumberInput = document.getElementById('case_number');
-                        caseNumberInput.focus();
-                        caseNumberInput.style.borderColor = '#dc3545';
-                        setTimeout(() => {
-                            caseNumberInput.style.borderColor = '';
-                        }, 3000);
-                    }
+                    showError(data.message, 'Error');
                 }
             })
             .catch(error => {
-                messageContainer.innerHTML = '<div class="message error"><i class="fas fa-exclamation-circle"></i> An error occurred. Please try again.</div>';
                 showError('An error occurred while saving the case. Please try again.', 'Error');
                 console.error('Error:', error);
             });
@@ -638,10 +682,17 @@
             document.getElementById('witnesses-list').innerHTML = '';
             document.getElementById('register_number_display').value = '';
             document.getElementById('register_number').value = '';
+
+            // Hide and clear custom information book field
+            const infoBookCustom = document.getElementById('information_book_custom');
+            if (infoBookCustom) {
+                infoBookCustom.style.display = 'none';
+                infoBookCustom.value = '';
+                infoBookCustom.required = false;
+            }
+
             productionCount = 0;
             suspectCount = 0;
             witnessCount = 0;
         }
     }
-</script>
-</div>

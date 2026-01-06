@@ -8,14 +8,115 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $page = max(1, $page); // Ensure page is at least 1
 $offset = ($page - 1) * $cases_per_page;
 
-// Get total count of cases
-$count_sql = "SELECT COUNT(*) as total FROM cases";
-$count_result = $conn->query($count_sql);
-$total_cases = 0;
-if ($count_result) {
+// Build WHERE clause based on filters
+$where_conditions = [];
+$params = [];
+$types = "";
+
+// Text search filters
+if (!empty($_GET['searchCaseNumber'])) {
+    $where_conditions[] = "c.case_number LIKE ?";
+    $params[] = "%" . $_GET['searchCaseNumber'] . "%";
+    $types .= "s";
+}
+
+if (!empty($_GET['searchRegister'])) {
+    $where_conditions[] = "c.register_number LIKE ?";
+    $params[] = "%" . $_GET['searchRegister'] . "%";
+    $types .= "s";
+}
+
+if (!empty($_GET['searchInfoBook'])) {
+    $where_conditions[] = "c.information_book LIKE ?";
+    $params[] = "%" . $_GET['searchInfoBook'] . "%";
+    $types .= "s";
+}
+
+// Dropdown filters
+if (!empty($_GET['filterInfoBook'])) {
+    $where_conditions[] = "c.information_book LIKE ?";
+    $params[] = $_GET['filterInfoBook'] . "%";
+    $types .= "s";
+}
+
+if (!empty($_GET['filterRegister'])) {
+    $where_conditions[] = "c.register_number LIKE ?";
+    $params[] = $_GET['filterRegister'] . "%";
+    $types .= "s";
+}
+
+if (!empty($_GET['filterAttorneyAdvice'])) {
+    $where_conditions[] = "c.attorney_general_advice = ?";
+    $params[] = $_GET['filterAttorneyAdvice'];
+    $types .= "s";
+}
+
+if (!empty($_GET['filterAnalystReport'])) {
+    $where_conditions[] = "c.analyst_report = ?";
+    $params[] = $_GET['filterAnalystReport'];
+    $types .= "s";
+}
+
+// Date range filters
+$date_filters = [
+    'prevDate' => 'previous_date',
+    'bReportDate' => 'date_produce_b_report',
+    'plantDate' => 'date_produce_plant',
+    'handoverDate' => 'date_handover_court',
+    'nextDate' => 'next_date'
+];
+
+foreach ($date_filters as $param => $column) {
+    $fromParam = $param . 'From';
+    $toParam = $param . 'To';
+    $exactParam = $param . 'Exact';
+    
+    if (!empty($_GET[$fromParam]) || !empty($_GET[$toParam])) {
+        if (!empty($_GET[$exactParam]) && $_GET[$exactParam] === 'true') {
+            // Exact date match
+            if (!empty($_GET[$fromParam])) {
+                $where_conditions[] = "c.$column = ?";
+                $params[] = $_GET[$fromParam];
+                $types .= "s";
+            }
+        } else {
+            // Date range
+            if (!empty($_GET[$fromParam])) {
+                $where_conditions[] = "c.$column >= ?";
+                $params[] = $_GET[$fromParam];
+                $types .= "s";
+            }
+            if (!empty($_GET[$toParam])) {
+                $where_conditions[] = "c.$column <= ?";
+                $params[] = $_GET[$toParam];
+                $types .= "s";
+            }
+        }
+    }
+}
+
+// Build the WHERE clause
+$where_sql = "";
+if (!empty($where_conditions)) {
+    $where_sql = " WHERE " . implode(" AND ", $where_conditions);
+}
+
+// Get total count of filtered cases
+$count_sql = "SELECT COUNT(*) as total FROM cases c" . $where_sql;
+if (!empty($params)) {
+    $count_stmt = $conn->prepare($count_sql);
+    $count_stmt->bind_param($types, ...$params);
+    $count_stmt->execute();
+    $count_result = $count_stmt->get_result();
+    $count_row = $count_result->fetch_assoc();
+    $total_cases = $count_row['total'];
+    $count_stmt->close();
+} else {
+    $count_result = $conn->query($count_sql);
     $count_row = $count_result->fetch_assoc();
     $total_cases = $count_row['total'];
 }
+
 $total_pages = ceil($total_cases / $cases_per_page);
 
 // Fetch cases for current page with user info
@@ -24,14 +125,27 @@ $sql = "SELECT c.*,
         u2.full_name as updated_by_name
         FROM cases c
         LEFT JOIN users u1 ON c.created_by = u1.id
-        LEFT JOIN users u2 ON c.updated_by = u2.id
-        ORDER BY c.created_at DESC
+        LEFT JOIN users u2 ON c.updated_by = u2.id" . 
+        $where_sql . 
+        " ORDER BY c.created_at DESC
         LIMIT $cases_per_page OFFSET $offset";
-$result = $conn->query($sql);
+
 $cases = [];
-if ($result) {
+if (!empty($params)) {
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $result = $stmt->get_result();
     while ($row = $result->fetch_assoc()) {
         $cases[] = $row;
+    }
+    $stmt->close();
+} else {
+    $result = $conn->query($sql);
+    if ($result) {
+        while ($row = $result->fetch_assoc()) {
+            $cases[] = $row;
+        }
     }
 }
 ?>
@@ -53,6 +167,7 @@ if ($result) {
             <div class="filter-row">
                 <input type="text" id="searchCaseNumber" placeholder="Search Case Number..." onkeyup="filterCases()">
                 <input type="text" id="searchRegister" placeholder="Search Register..." onkeyup="filterCases()">
+                <input type="text" id="searchInfoBook" placeholder="Search Information Book..." onkeyup="filterCases()">
             </div>
 
             <!-- Row 2: Date Filters (Previous, B Report, Plant) -->
@@ -121,53 +236,53 @@ if ($result) {
             <!-- Row 4: Dropdown Filters -->
             <div class="filter-row">
                 <select id="filterInfoBook" onchange="filterCases()">
-                    <option value="">All Information Books</option>
-                    <option value="RIB">RIB</option>
-                    <option value="GCIB I">GCIB I</option>
-                    <option value="GCIB II">GCIB II</option>
-                    <option value="GCIB III">GCIB III</option>
-                    <option value="MOIB">MOIB</option>
-                    <option value="VIB">VIB</option>
-                    <option value="EIB">EIB</option>
-                    <option value="CPUIB">CPUIB</option>
-                    <option value="WCIB">WCIB</option>
-                    <option value="PIB">PIB</option>
-                    <option value="TIB">TIB</option>
-                    <option value="AIB">AIB</option>
-                    <option value="CIB I">CIB I</option>
-                    <option value="CIB II">CIB II</option>
-                    <option value="CIB III">CIB III</option>
-                    <option value="119 IB">119 IB</option>
-                    <option value="TR">TR</option>
-                    <option value="119 TR">119 TR</option>
-                    <option value="VPN TR">VPN TR</option>
-                    <option value="118 TR">118 TR</option>
+                    <option value="" <?php echo (!isset($_GET['filterInfoBook']) || $_GET['filterInfoBook'] === '') ? 'selected' : ''; ?>>All Information Books</option>
+                    <option value="RIB" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === 'RIB') ? 'selected' : ''; ?>>RIB</option>
+                    <option value="GCIB I" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === 'GCIB I') ? 'selected' : ''; ?>>GCIB I</option>
+                    <option value="GCIB II" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === 'GCIB II') ? 'selected' : ''; ?>>GCIB II</option>
+                    <option value="GCIB III" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === 'GCIB III') ? 'selected' : ''; ?>>GCIB III</option>
+                    <option value="MOIB" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === 'MOIB') ? 'selected' : ''; ?>>MOIB</option>
+                    <option value="VIB" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === 'VIB') ? 'selected' : ''; ?>>VIB</option>
+                    <option value="EIB" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === 'EIB') ? 'selected' : ''; ?>>EIB</option>
+                    <option value="CPUIB" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === 'CPUIB') ? 'selected' : ''; ?>>CPUIB</option>
+                    <option value="WCIB" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === 'WCIB') ? 'selected' : ''; ?>>WCIB</option>
+                    <option value="PIB" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === 'PIB') ? 'selected' : ''; ?>>PIB</option>
+                    <option value="TIB" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === 'TIB') ? 'selected' : ''; ?>>TIB</option>
+                    <option value="AIB" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === 'AIB') ? 'selected' : ''; ?>>AIB</option>
+                    <option value="CIB I" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === 'CIB I') ? 'selected' : ''; ?>>CIB I</option>
+                    <option value="CIB II" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === 'CIB II') ? 'selected' : ''; ?>>CIB II</option>
+                    <option value="CIB III" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === 'CIB III') ? 'selected' : ''; ?>>CIB III</option>
+                    <option value="119 IB" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === '119 IB') ? 'selected' : ''; ?>>119 IB</option>
+                    <option value="TR" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === 'TR') ? 'selected' : ''; ?>>TR</option>
+                    <option value="119 TR" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === '119 TR') ? 'selected' : ''; ?>>119 TR</option>
+                    <option value="VPN TR" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === 'VPN TR') ? 'selected' : ''; ?>>VPN TR</option>
+                    <option value="118 TR" <?php echo (isset($_GET['filterInfoBook']) && $_GET['filterInfoBook'] === '118 TR') ? 'selected' : ''; ?>>118 TR</option>
                 </select>
 
                 <select id="filterRegister" onchange="filterCases()">
-                    <option value="">All Registers</option>
-                    <option value="GCR">GCR</option>
-                    <option value="MOR">MOR</option>
-                    <option value="VMOR">VMOR</option>
-                    <option value="MCR">MCR</option>
-                    <option value="TAR">TAR</option>
-                    <option value="TMOR">TMOR</option>
-                    <option value="AR">AR</option>
-                    <option value="SDR">SDR</option>
-                    <option value="MPR">MPR</option>
-                    <option value="LPR">LPR</option>
+                    <option value="" <?php echo (!isset($_GET['filterRegister']) || $_GET['filterRegister'] === '') ? 'selected' : ''; ?>>All Registers</option>
+                    <option value="GCR" <?php echo (isset($_GET['filterRegister']) && $_GET['filterRegister'] === 'GCR') ? 'selected' : ''; ?>>GCR</option>
+                    <option value="MOR" <?php echo (isset($_GET['filterRegister']) && $_GET['filterRegister'] === 'MOR') ? 'selected' : ''; ?>>MOR</option>
+                    <option value="VMOR" <?php echo (isset($_GET['filterRegister']) && $_GET['filterRegister'] === 'VMOR') ? 'selected' : ''; ?>>VMOR</option>
+                    <option value="MCR" <?php echo (isset($_GET['filterRegister']) && $_GET['filterRegister'] === 'MCR') ? 'selected' : ''; ?>>MCR</option>
+                    <option value="TAR" <?php echo (isset($_GET['filterRegister']) && $_GET['filterRegister'] === 'TAR') ? 'selected' : ''; ?>>TAR</option>
+                    <option value="TMOR" <?php echo (isset($_GET['filterRegister']) && $_GET['filterRegister'] === 'TMOR') ? 'selected' : ''; ?>>TMOR</option>
+                    <option value="AR" <?php echo (isset($_GET['filterRegister']) && $_GET['filterRegister'] === 'AR') ? 'selected' : ''; ?>>AR</option>
+                    <option value="SDR" <?php echo (isset($_GET['filterRegister']) && $_GET['filterRegister'] === 'SDR') ? 'selected' : ''; ?>>SDR</option>
+                    <option value="MPR" <?php echo (isset($_GET['filterRegister']) && $_GET['filterRegister'] === 'MPR') ? 'selected' : ''; ?>>MPR</option>
+                    <option value="LPR" <?php echo (isset($_GET['filterRegister']) && $_GET['filterRegister'] === 'LPR') ? 'selected' : ''; ?>>LPR</option>
                 </select>
 
                 <select id="filterAttorneyAdvice" onchange="filterCases()">
-                    <option value="">All Attorney Advice</option>
-                    <option value="YES">YES</option>
-                    <option value="NO">NO</option>
+                    <option value="" <?php echo (!isset($_GET['filterAttorneyAdvice']) || $_GET['filterAttorneyAdvice'] === '') ? 'selected' : ''; ?>>All Attorney Advice</option>
+                    <option value="YES" <?php echo (isset($_GET['filterAttorneyAdvice']) && $_GET['filterAttorneyAdvice'] === 'YES') ? 'selected' : ''; ?>>YES</option>
+                    <option value="NO" <?php echo (isset($_GET['filterAttorneyAdvice']) && $_GET['filterAttorneyAdvice'] === 'NO') ? 'selected' : ''; ?>>NO</option>
                 </select>
 
                 <select id="filterAnalystReport" onchange="filterCases()">
-                    <option value="">All Analyst Reports</option>
-                    <option value="YES">YES</option>
-                    <option value="NO">NO</option>
+                    <option value="" <?php echo (!isset($_GET['filterAnalystReport']) || $_GET['filterAnalystReport'] === '') ? 'selected' : ''; ?>>All Analyst Reports</option>
+                    <option value="YES" <?php echo (isset($_GET['filterAnalystReport']) && $_GET['filterAnalystReport'] === 'YES') ? 'selected' : ''; ?>>YES</option>
+                    <option value="NO" <?php echo (isset($_GET['filterAnalystReport']) && $_GET['filterAnalystReport'] === 'NO') ? 'selected' : ''; ?>>NO</option>
                 </select>
 
                 <button class="btn-clear-filter" onclick="clearFilters()">
@@ -369,11 +484,25 @@ if ($result) {
     var bulkPrintCaseIds = [];
 
     // Load specific page
+    // Store current filter state globally
+    window.currentCaseFilters = new URLSearchParams();
+    <?php
+    foreach ($_GET as $key => $value) {
+        if ($key !== 'page') {
+            echo "window.currentCaseFilters.set('" . htmlspecialchars($key, ENT_QUOTES) . "', '" . htmlspecialchars($value, ENT_QUOTES) . "');\n    ";
+        }
+    }
+    ?>
+
     window.loadPage = function(pageNumber) {
         const casesContent = document.getElementById('cases-content');
         casesContent.innerHTML = '<h2><i class="fas fa-folder-open"></i> All Cases</h2><p>Loading cases...</p>';
 
-        fetch('content/allCases/all_cases.php?page=' + pageNumber)
+        // Use stored filters instead of window.location.search
+        const params = new URLSearchParams(window.currentCaseFilters);
+        params.set('page', pageNumber);
+
+        fetch('content/allCases/all_cases.php?' + params.toString())
             .then(response => response.text())
             .then(data => {
                 casesContent.innerHTML = data;
@@ -417,40 +546,44 @@ if ($result) {
 
     function parseAndPopulateRegisterNumber(registerNumber) {
         // Parse register number like "GCR 01/2025"
+        const displayField = document.getElementById('edit_register_number_display');
+        const hiddenField = document.getElementById('edit_register_number');
+
         if (!registerNumber) {
             document.getElementById('edit_register_type').value = '';
             document.getElementById('edit_register_month').value = '';
             document.getElementById('edit_register_year').value = '';
-            document.getElementById('edit_register_number_display').value = '';
-            document.getElementById('edit_register_number').value = '';
+            displayField.value = '';
+            hiddenField.value = '';
             return;
         }
+
+        // Always set the display and hidden field to the actual value from database
+        displayField.value = registerNumber;
+        hiddenField.value = registerNumber;
 
         // Pattern: TYPE MONTH/YEAR (e.g., "GCR 01/2025")
         const match = registerNumber.match(/^([A-Z]+)\s+(\d{2})\/(\d{4})$/);
 
         if (match) {
+            // If it matches the standard format, populate the dropdowns
             const [, type, month, year] = match;
             document.getElementById('edit_register_type').value = type;
             document.getElementById('edit_register_month').value = month;
             document.getElementById('edit_register_year').value = year;
         } else {
-            // If parsing fails, try to extract what we can
+            // If it doesn't match (manually edited), clear dropdowns but keep the display value
             document.getElementById('edit_register_type').value = '';
             document.getElementById('edit_register_month').value = '';
             document.getElementById('edit_register_year').value = '';
         }
-
-        // Update the display after populating
-        setTimeout(() => {
-            window.updateEditRegisterNumber();
-        }, 100);
     }
 
     function attachEditRegisterListeners() {
         const editRegisterType = document.getElementById('edit_register_type');
         const editRegisterMonth = document.getElementById('edit_register_month');
         const editRegisterYear = document.getElementById('edit_register_year');
+        const editRegisterDisplay = document.getElementById('edit_register_number_display');
 
         if (editRegisterType) {
             editRegisterType.removeEventListener('change', window.updateEditRegisterNumber);
@@ -463,6 +596,20 @@ if ($result) {
         if (editRegisterYear) {
             editRegisterYear.removeEventListener('input', window.updateEditRegisterNumber);
             editRegisterYear.addEventListener('input', window.updateEditRegisterNumber);
+        }
+
+        // Allow manual editing of register number display and sync with hidden field
+        if (editRegisterDisplay) {
+            editRegisterDisplay.removeEventListener('input', syncEditRegisterDisplay);
+            editRegisterDisplay.addEventListener('input', syncEditRegisterDisplay);
+        }
+    }
+
+    function syncEditRegisterDisplay() {
+        const display = document.getElementById('edit_register_number_display');
+        const hidden = document.getElementById('edit_register_number');
+        if (display && hidden) {
+            hidden.value = display.value;
         }
     }
 
@@ -489,8 +636,10 @@ if ($result) {
 
     // Define functions immediately and attach to window
     window.filterCases = function() {
-        const searchCaseNumber = document.getElementById('searchCaseNumber').value.toUpperCase();
-        const searchRegister = document.getElementById('searchRegister').value.toUpperCase();
+        // Collect all filter values
+        const searchCaseNumber = document.getElementById('searchCaseNumber').value;
+        const searchRegister = document.getElementById('searchRegister').value;
+        const searchInfoBook = document.getElementById('searchInfoBook').value;
         const filterInfoBook = document.getElementById('filterInfoBook').value;
         const filterRegister = document.getElementById('filterRegister').value;
         const filterAttorneyAdvice = document.getElementById('filterAttorneyAdvice').value;
@@ -499,64 +648,80 @@ if ($result) {
         // Date filters
         const prevDateFrom = document.getElementById('prevDateFrom').value;
         const prevDateTo = document.getElementById('prevDateTo').value;
+        const prevDateExact = document.getElementById('prevDateExact').checked;
+        
         const bReportDateFrom = document.getElementById('bReportDateFrom').value;
         const bReportDateTo = document.getElementById('bReportDateTo').value;
+        const bReportDateExact = document.getElementById('bReportDateExact').checked;
+        
         const plantDateFrom = document.getElementById('plantDateFrom').value;
         const plantDateTo = document.getElementById('plantDateTo').value;
+        const plantDateExact = document.getElementById('plantDateExact').checked;
+        
         const handoverDateFrom = document.getElementById('handoverDateFrom').value;
         const handoverDateTo = document.getElementById('handoverDateTo').value;
+        const handoverDateExact = document.getElementById('handoverDateExact').checked;
+        
         const nextDateFrom = document.getElementById('nextDateFrom').value;
         const nextDateTo = document.getElementById('nextDateTo').value;
+        const nextDateExact = document.getElementById('nextDateExact').checked;
 
-        const table = document.getElementById('casesTable');
-        const tr = table.getElementsByTagName('tr');
+        // Build URL with filter parameters
+        const params = new URLSearchParams();
+        params.set('page', '1'); // Reset to page 1 when filtering
+        
+        if (searchCaseNumber) params.set('searchCaseNumber', searchCaseNumber);
+        if (searchRegister) params.set('searchRegister', searchRegister);
+        if (searchInfoBook) params.set('searchInfoBook', searchInfoBook);
+        if (filterInfoBook) params.set('filterInfoBook', filterInfoBook);
+        if (filterRegister) params.set('filterRegister', filterRegister);
+        if (filterAttorneyAdvice) params.set('filterAttorneyAdvice', filterAttorneyAdvice);
+        if (filterAnalystReport) params.set('filterAnalystReport', filterAnalystReport);
+        
+        // Date filters
+        if (prevDateFrom) params.set('prevDateFrom', prevDateFrom);
+        if (prevDateTo) params.set('prevDateTo', prevDateTo);
+        if (prevDateExact) params.set('prevDateExact', 'true');
+        
+        if (bReportDateFrom) params.set('bReportDateFrom', bReportDateFrom);
+        if (bReportDateTo) params.set('bReportDateTo', bReportDateTo);
+        if (bReportDateExact) params.set('bReportDateExact', 'true');
+        
+        if (plantDateFrom) params.set('plantDateFrom', plantDateFrom);
+        if (plantDateTo) params.set('plantDateTo', plantDateTo);
+        if (plantDateExact) params.set('plantDateExact', 'true');
+        
+        if (handoverDateFrom) params.set('handoverDateFrom', handoverDateFrom);
+        if (handoverDateTo) params.set('handoverDateTo', handoverDateTo);
+        if (handoverDateExact) params.set('handoverDateExact', 'true');
+        
+        if (nextDateFrom) params.set('nextDateFrom', nextDateFrom);
+        if (nextDateTo) params.set('nextDateTo', nextDateTo);
+        if (nextDateExact) params.set('nextDateExact', 'true');
 
-        for (let i = 1; i < tr.length; i++) {
-            const row = tr[i];
-            const caseNumber = row.dataset.caseNumber || '';
-            const register = row.dataset.register || '';
-            const infoBook = row.dataset.infoBook || '';
-            const prevDate = row.dataset.prevDate || '';
-            const bReportDate = row.dataset.bReportDate || '';
-            const plantDate = row.dataset.plantDate || '';
-            const handoverDate = row.dataset.handoverDate || '';
-            const nextDate = row.dataset.nextDate || '';
-            const attorneyAdvice = row.dataset.attorneyAdvice || '';
-            const analystReport = row.dataset.analystReport || '';
+        // Store current filters globally for pagination
+        window.currentCaseFilters = new URLSearchParams(params);
+        window.currentCaseFilters.delete('page'); // Don't store page number
 
-            // Text search filters
-            const matchesCaseNumber = searchCaseNumber === '' || caseNumber.toUpperCase().includes(searchCaseNumber);
-            const matchesRegisterSearch = searchRegister === '' || register.toUpperCase().includes(searchRegister);
-
-            // Dropdown filters - normalize values for comparison (handle both underscores and spaces)
-            const normalizeValue = (val) => val.replace(/_/g, ' ').trim();
-            const matchesInfoBook = filterInfoBook === '' || normalizeValue(infoBook) === normalizeValue(filterInfoBook);
-            const matchesRegister = filterRegister === '' || register.trim().startsWith(filterRegister);
-            const matchesAttorneyAdvice = filterAttorneyAdvice === '' || attorneyAdvice === filterAttorneyAdvice;
-            const matchesAnalystReport = filterAnalystReport === '' || analystReport === filterAnalystReport;
-
-            // Get exact date checkboxes
-            const prevDateExact = document.getElementById('prevDateExact').checked;
-            const bReportDateExact = document.getElementById('bReportDateExact').checked;
-            const plantDateExact = document.getElementById('plantDateExact').checked;
-            const handoverDateExact = document.getElementById('handoverDateExact').checked;
-            const nextDateExact = document.getElementById('nextDateExact').checked;
-
-            // Date range filters
-            const matchesPrevDate = checkDateRange(prevDate, prevDateFrom, prevDateTo, prevDateExact);
-            const matchesBReportDate = checkDateRange(bReportDate, bReportDateFrom, bReportDateTo, bReportDateExact);
-            const matchesPlantDate = checkDateRange(plantDate, plantDateFrom, plantDateTo, plantDateExact);
-            const matchesHandoverDate = checkDateRange(handoverDate, handoverDateFrom, handoverDateTo, handoverDateExact);
-            const matchesNextDate = checkDateRange(nextDate, nextDateFrom, nextDateTo, nextDateExact);
-
-            // Show/hide row based on all filters
-            if (matchesCaseNumber && matchesRegisterSearch && matchesInfoBook && matchesRegister &&
-                matchesAttorneyAdvice && matchesAnalystReport && matchesPrevDate && matchesBReportDate &&
-                matchesPlantDate && matchesHandoverDate && matchesNextDate) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
+        // Reload content via AJAX (same as loadPage function)
+        const casesContent = document.getElementById('cases-content');
+        if (casesContent) {
+            // We're in the dashboard - load via AJAX
+            casesContent.innerHTML = '<h2><i class="fas fa-folder-open"></i> All Cases</h2><p>Filtering cases...</p>';
+            
+            fetch('content/allCases/all_cases.php?' + params.toString())
+                .then(response => response.text())
+                .then(data => {
+                    casesContent.innerHTML = data;
+                    casesContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                })
+                .catch(error => {
+                    console.error('Error filtering cases:', error);
+                    casesContent.innerHTML = '<h2><i class="fas fa-folder-open"></i> All Cases</h2><p>Error loading filtered cases. Please try again.</p>';
+                });
+        } else {
+            // Standalone page - use normal navigation
+            window.location.href = 'all_cases.php?' + params.toString();
         }
     }
 
@@ -607,6 +772,7 @@ if ($result) {
     window.clearFilters = function() {
         document.getElementById('searchCaseNumber').value = '';
         document.getElementById('searchRegister').value = '';
+        document.getElementById('searchInfoBook').value = '';
         document.getElementById('filterInfoBook').value = '';
         document.getElementById('filterRegister').value = '';
         document.getElementById('filterAttorneyAdvice').value = '';
@@ -965,8 +1131,14 @@ if ($result) {
 
         // Fetch case details to populate the form
         fetch('content/allCases/get_case_details.php?id=' + caseId)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('HTTP error! status: ' + response.status);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('Received data:', data);
                 if (data.success) {
                     populateEditForm(data.case);
                 } else {
@@ -976,7 +1148,7 @@ if ($result) {
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error loading case details');
+                alert('Error loading case details: ' + error.message);
                 editModal.style.display = 'none';
             });
     }
@@ -1001,8 +1173,40 @@ if ($result) {
         // Parse and populate register number fields
         parseAndPopulateRegisterNumber(caseData.register_number || '');
 
-        document.getElementById('edit_information_book').value = caseData.information_book || '';
-        console.log('Setting information_book to:', caseData.information_book);
+        // Populate information book
+        const infoBook = caseData.information_book || '';
+        const infoBookSelect = document.getElementById('edit_information_book');
+        const infoBookCustom = document.getElementById('edit_information_book_custom');
+
+        if (!infoBookSelect || !infoBookCustom) {
+            console.error('Information book elements not found');
+            return;
+        }
+
+        const standardValues = ['RIB', 'GCIB I', 'GCIB II', 'GCIB III', 'MOIB', 'VIB', 'EIB', 'CPUIB', 'WCIB', 'PIB', 'TIB', 'AIB', 'CIB I', 'CIB II', 'CIB III', '119 IB', 'TR', '119 TR', 'VPN TR', '118 TR'];
+
+        console.log('Information Book Debug:', {
+            raw: caseData.information_book,
+            infoBook: infoBook,
+            isStandard: standardValues.includes(infoBook),
+            selectExists: !!infoBookSelect,
+            customExists: !!infoBookCustom
+        });
+
+        if (standardValues.includes(infoBook)) {
+            infoBookSelect.value = infoBook;
+            infoBookCustom.style.display = 'none';
+            console.log('✓ Set standard value:', infoBook);
+        } else if (infoBook) {
+            infoBookSelect.value = 'CUSTOM';
+            infoBookCustom.value = infoBook;
+            infoBookCustom.style.display = 'block';
+            console.log('✓ Set custom value:', infoBook);
+        } else {
+            infoBookSelect.value = '';
+            infoBookCustom.style.display = 'none';
+            console.log('⚠ Information Book is empty');
+        }
 
         document.getElementById('edit_date_produce_b_report').value = caseData.date_produce_b_report || '';
         document.getElementById('edit_date_produce_plant').value = caseData.date_produce_plant || '';
@@ -1042,6 +1246,14 @@ if ($result) {
 
         // Attach event listeners for register number fields
         attachEditRegisterListeners();
+
+        // IMPORTANT: Re-attach form submission handlers after populating the form
+        // This fixes the issue where Save Changes button doesn't work after editing
+        if (typeof attachEditFormHandlers === 'function') {
+            attachEditFormHandlers();
+        } else {
+            console.warn('attachEditFormHandlers function not found - form submission may not work');
+        }
     }
 
     window.printCase = function(caseId) {
@@ -2096,4 +2308,88 @@ if ($result) {
         });
         window.printModalClickHandlerAdded = true;
     }
+
+    // Restore filter values from URL parameters
+    (function restoreFilters() {
+        // Build params from PHP GET variables (server-side source of truth)
+        const params = new URLSearchParams();
+        <?php
+        foreach ($_GET as $key => $value) {
+            if ($key !== 'page') {
+                echo "params.set('" . htmlspecialchars($key, ENT_QUOTES) . "', '" . htmlspecialchars($value, ENT_QUOTES) . "');\n        ";
+            }
+        }
+        ?>
+        
+        console.log('Restoring filters:', params.toString());
+        
+        // Text search filters
+        const searchCaseNumber = document.getElementById('searchCaseNumber');
+        const searchRegister = document.getElementById('searchRegister');
+        const searchInfoBook = document.getElementById('searchInfoBook');
+        
+        if (searchCaseNumber && params.has('searchCaseNumber')) 
+            searchCaseNumber.value = params.get('searchCaseNumber');
+        if (searchRegister && params.has('searchRegister')) 
+            searchRegister.value = params.get('searchRegister');
+        if (searchInfoBook && params.has('searchInfoBook')) 
+            searchInfoBook.value = params.get('searchInfoBook');
+        
+        // Dropdown filters
+        const filterInfoBook = document.getElementById('filterInfoBook');
+        const filterRegister = document.getElementById('filterRegister');
+        const filterAttorneyAdvice = document.getElementById('filterAttorneyAdvice');
+        const filterAnalystReport = document.getElementById('filterAnalystReport');
+        
+        if (filterInfoBook && params.has('filterInfoBook')) {
+            const value = params.get('filterInfoBook');
+            filterInfoBook.value = value;
+            console.log('Set filterInfoBook to:', value, 'Actual value now:', filterInfoBook.value);
+        }
+        if (filterRegister && params.has('filterRegister')) {
+            const value = params.get('filterRegister');
+            filterRegister.value = value;
+            console.log('Set filterRegister to:', value, 'Actual value now:', filterRegister.value);
+        }
+        if (filterAttorneyAdvice && params.has('filterAttorneyAdvice')) 
+            filterAttorneyAdvice.value = params.get('filterAttorneyAdvice');
+        if (filterAnalystReport && params.has('filterAnalystReport')) 
+            filterAnalystReport.value = params.get('filterAnalystReport');
+        
+        // Date filters
+        if (params.has('prevDateFrom')) 
+            document.getElementById('prevDateFrom').value = params.get('prevDateFrom');
+        if (params.has('prevDateTo')) 
+            document.getElementById('prevDateTo').value = params.get('prevDateTo');
+        if (params.has('prevDateExact')) 
+            document.getElementById('prevDateExact').checked = true;
+        
+        if (params.has('bReportDateFrom')) 
+            document.getElementById('bReportDateFrom').value = params.get('bReportDateFrom');
+        if (params.has('bReportDateTo')) 
+            document.getElementById('bReportDateTo').value = params.get('bReportDateTo');
+        if (params.has('bReportDateExact')) 
+            document.getElementById('bReportDateExact').checked = true;
+        
+        if (params.has('plantDateFrom')) 
+            document.getElementById('plantDateFrom').value = params.get('plantDateFrom');
+        if (params.has('plantDateTo')) 
+            document.getElementById('plantDateTo').value = params.get('plantDateTo');
+        if (params.has('plantDateExact')) 
+            document.getElementById('plantDateExact').checked = true;
+        
+        if (params.has('handoverDateFrom')) 
+            document.getElementById('handoverDateFrom').value = params.get('handoverDateFrom');
+        if (params.has('handoverDateTo')) 
+            document.getElementById('handoverDateTo').value = params.get('handoverDateTo');
+        if (params.has('handoverDateExact')) 
+            document.getElementById('handoverDateExact').checked = true;
+        
+        if (params.has('nextDateFrom')) 
+            document.getElementById('nextDateFrom').value = params.get('nextDateFrom');
+        if (params.has('nextDateTo')) 
+            document.getElementById('nextDateTo').value = params.get('nextDateTo');
+        if (params.has('nextDateExact')) 
+            document.getElementById('nextDateExact').checked = true;
+    })();
 </script>
