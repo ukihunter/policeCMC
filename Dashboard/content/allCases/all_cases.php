@@ -1073,7 +1073,7 @@ if (!empty($params)) {
             .then(data => {
                 const notesField = document.getElementById('edit_next_date_notes');
                 const notesLabel = notesField ? notesField.previousElementSibling : null;
-                
+
                 if (data.success && data.history.length > 0) {
                     // Get the most recent entry
                     const latestEntry = data.history[0];
