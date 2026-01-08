@@ -165,45 +165,45 @@ if (!empty($params)) {
         <div class="filter-section">
             <!-- Row 1: Text Search -->
             <div class="filter-row">
-                <input type="text" id="searchCaseNumber" placeholder="Search Case Number..." onkeyup="filterCases()">
-                <input type="text" id="searchRegister" placeholder="Search Register..." onkeyup="filterCases()">
-                <input type="text" id="searchInfoBook" placeholder="Search Information Book..." onkeyup="filterCases()">
+                <input type="text" id="searchCaseNumber" placeholder="Search Case Number..." value="<?php echo isset($_GET['searchCaseNumber']) ? htmlspecialchars($_GET['searchCaseNumber']) : ''; ?>" oninput="debouncedFilter()">
+                <input type="text" id="searchRegister" placeholder="Search Register..." value="<?php echo isset($_GET['searchRegister']) ? htmlspecialchars($_GET['searchRegister']) : ''; ?>" oninput="debouncedFilter()">
+                <input type="text" id="searchInfoBook" placeholder="Search Information Book..." value="<?php echo isset($_GET['searchInfoBook']) ? htmlspecialchars($_GET['searchInfoBook']) : ''; ?>" oninput="debouncedFilter()">
             </div>
 
             <!-- Row 2: Date Filters (Previous, B Report, Plant) -->
             <div class="filter-row">
                 <div class="date-filter-group">
                     <label>Previous Date:</label>
-                    <input type="date" id="prevDateFrom" onchange="handleDateChange('prevDate')">
+                    <input type="date" id="prevDateFrom" value="<?php echo isset($_GET['prevDateFrom']) ? htmlspecialchars($_GET['prevDateFrom']) : ''; ?>" onchange="handleDateChange('prevDate')">
                     <label style="font-size: 11px; margin-top: 2px;">
-                        <input type="checkbox" id="prevDateExact" onchange="handleDateChange('prevDate')" style="width: auto; margin-right: 3px;" checked> Exact Match
+                        <input type="checkbox" id="prevDateExact" onchange="handleDateChange('prevDate')" style="width: auto; margin-right: 3px;" <?php echo (!isset($_GET['prevDateExact']) || $_GET['prevDateExact'] === 'true') ? 'checked' : ''; ?>> Exact Match
                     </label>
                 </div>
                 <div class="date-filter-group">
                     <label>To:</label>
-                    <input type="date" id="prevDateTo" onchange="filterCases()" disabled style="opacity: 0.5; cursor: not-allowed;">
+                    <input type="date" id="prevDateTo" value="<?php echo isset($_GET['prevDateTo']) ? htmlspecialchars($_GET['prevDateTo']) : ''; ?>" onchange="filterCases()" <?php echo (!isset($_GET['prevDateExact']) || $_GET['prevDateExact'] === 'true') ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>
                 </div>
                 <div class="date-filter-group">
                     <label>B Report Date:</label>
-                    <input type="date" id="bReportDateFrom" onchange="handleDateChange('bReportDate')">
+                    <input type="date" id="bReportDateFrom" value="<?php echo isset($_GET['bReportDateFrom']) ? htmlspecialchars($_GET['bReportDateFrom']) : ''; ?>" onchange="handleDateChange('bReportDate')">
                     <label style="font-size: 11px; margin-top: 2px;">
-                        <input type="checkbox" id="bReportDateExact" onchange="handleDateChange('bReportDate')" style="width: auto; margin-right: 3px;" checked> Exact Match
+                        <input type="checkbox" id="bReportDateExact" onchange="handleDateChange('bReportDate')" style="width: auto; margin-right: 3px;" <?php echo (!isset($_GET['bReportDateExact']) || $_GET['bReportDateExact'] === 'true') ? 'checked' : ''; ?>> Exact Match
                     </label>
                 </div>
                 <div class="date-filter-group">
                     <label>To:</label>
-                    <input type="date" id="bReportDateTo" onchange="filterCases()" disabled style="opacity: 0.5; cursor: not-allowed;">
+                    <input type="date" id="bReportDateTo" value="<?php echo isset($_GET['bReportDateTo']) ? htmlspecialchars($_GET['bReportDateTo']) : ''; ?>" onchange="filterCases()" <?php echo (!isset($_GET['bReportDateExact']) || $_GET['bReportDateExact'] === 'true') ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>
                 </div>
                 <div class="date-filter-group">
                     <label>Plant Date:</label>
-                    <input type="date" id="plantDateFrom" onchange="handleDateChange('plantDate')">
+                    <input type="date" id="plantDateFrom" value="<?php echo isset($_GET['plantDateFrom']) ? htmlspecialchars($_GET['plantDateFrom']) : ''; ?>" onchange="handleDateChange('plantDate')">
                     <label style="font-size: 11px; margin-top: 2px;">
-                        <input type="checkbox" id="plantDateExact" onchange="handleDateChange('plantDate')" style="width: auto; margin-right: 3px;" checked> Exact Match
+                        <input type="checkbox" id="plantDateExact" onchange="handleDateChange('plantDate')" style="width: auto; margin-right: 3px;" <?php echo (!isset($_GET['plantDateExact']) || $_GET['plantDateExact'] === 'true') ? 'checked' : ''; ?>> Exact Match
                     </label>
                 </div>
                 <div class="date-filter-group">
                     <label>To:</label>
-                    <input type="date" id="plantDateTo" onchange="filterCases()" disabled style="opacity: 0.5; cursor: not-allowed;">
+                    <input type="date" id="plantDateTo" value="<?php echo isset($_GET['plantDateTo']) ? htmlspecialchars($_GET['plantDateTo']) : ''; ?>" onchange="filterCases()" <?php echo (!isset($_GET['plantDateExact']) || $_GET['plantDateExact'] === 'true') ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>
                 </div>
             </div>
 
@@ -211,25 +211,25 @@ if (!empty($params)) {
             <div class="filter-row">
                 <div class="date-filter-group">
                     <label>Handover Date:</label>
-                    <input type="date" id="handoverDateFrom" onchange="handleDateChange('handoverDate')">
+                    <input type="date" id="handoverDateFrom" value="<?php echo isset($_GET['handoverDateFrom']) ? htmlspecialchars($_GET['handoverDateFrom']) : ''; ?>" onchange="handleDateChange('handoverDate')">
                     <label style="font-size: 11px; margin-top: 2px;">
-                        <input type="checkbox" id="handoverDateExact" onchange="handleDateChange('handoverDate')" style="width: auto; margin-right: 3px;" checked> Exact Match
+                        <input type="checkbox" id="handoverDateExact" onchange="handleDateChange('handoverDate')" style="width: auto; margin-right: 3px;" <?php echo (!isset($_GET['handoverDateExact']) || $_GET['handoverDateExact'] === 'true') ? 'checked' : ''; ?>> Exact Match
                     </label>
                 </div>
                 <div class="date-filter-group">
                     <label>To:</label>
-                    <input type="date" id="handoverDateTo" onchange="filterCases()" disabled style="opacity: 0.5; cursor: not-allowed;">
+                    <input type="date" id="handoverDateTo" value="<?php echo isset($_GET['handoverDateTo']) ? htmlspecialchars($_GET['handoverDateTo']) : ''; ?>" onchange="filterCases()" <?php echo (!isset($_GET['handoverDateExact']) || $_GET['handoverDateExact'] === 'true') ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>
                 </div>
                 <div class="date-filter-group">
                     <label>Next Date:</label>
-                    <input type="date" id="nextDateFrom" onchange="handleDateChange('nextDate')">
+                    <input type="date" id="nextDateFrom" value="<?php echo isset($_GET['nextDateFrom']) ? htmlspecialchars($_GET['nextDateFrom']) : ''; ?>" onchange="handleDateChange('nextDate')">
                     <label style="font-size: 11px; margin-top: 2px;">
-                        <input type="checkbox" id="nextDateExact" onchange="handleDateChange('nextDate')" style="width: auto; margin-right: 3px;" checked> Exact Match
+                        <input type="checkbox" id="nextDateExact" onchange="handleDateChange('nextDate')" style="width: auto; margin-right: 3px;" <?php echo (!isset($_GET['nextDateExact']) || $_GET['nextDateExact'] === 'true') ? 'checked' : ''; ?>> Exact Match
                     </label>
                 </div>
                 <div class="date-filter-group">
                     <label>To:</label>
-                    <input type="date" id="nextDateTo" onchange="filterCases()" disabled style="opacity: 0.5; cursor: not-allowed;">
+                    <input type="date" id="nextDateTo" value="<?php echo isset($_GET['nextDateTo']) ? htmlspecialchars($_GET['nextDateTo']) : ''; ?>" onchange="filterCases()" <?php echo (!isset($_GET['nextDateExact']) || $_GET['nextDateExact'] === 'true') ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>
                 </div>
             </div>
 
@@ -462,7 +462,7 @@ if (!empty($params)) {
 
 <!-- Case Details Modal -->
 <div id="caseModal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width: 1400px;">
         <div class="modal-header">
             <h2><i class="fas fa-file-alt"></i> Case Details</h2>
             <span class="close-modal" onclick="closeModal()">&times;</span>
@@ -634,6 +634,15 @@ if (!empty($params)) {
         filterCases();
     }
 
+    // Debounce function to delay filter execution
+    let filterTimeout = null;
+    window.debouncedFilter = function() {
+        clearTimeout(filterTimeout);
+        filterTimeout = setTimeout(function() {
+            filterCases();
+        }, 300); // Wait 300ms after user stops typing
+    }
+
     // Define functions immediately and attach to window
     window.filterCases = function() {
         // Collect all filter values
@@ -680,24 +689,24 @@ if (!empty($params)) {
 
         // Date filters
         if (prevDateFrom) params.set('prevDateFrom', prevDateFrom);
-        if (prevDateTo) params.set('prevDateTo', prevDateTo);
-        if (prevDateExact) params.set('prevDateExact', 'true');
+        if (prevDateTo && !prevDateExact) params.set('prevDateTo', prevDateTo);
+        if (prevDateFrom && prevDateExact) params.set('prevDateExact', 'true');
 
         if (bReportDateFrom) params.set('bReportDateFrom', bReportDateFrom);
-        if (bReportDateTo) params.set('bReportDateTo', bReportDateTo);
-        if (bReportDateExact) params.set('bReportDateExact', 'true');
+        if (bReportDateTo && !bReportDateExact) params.set('bReportDateTo', bReportDateTo);
+        if (bReportDateFrom && bReportDateExact) params.set('bReportDateExact', 'true');
 
         if (plantDateFrom) params.set('plantDateFrom', plantDateFrom);
-        if (plantDateTo) params.set('plantDateTo', plantDateTo);
-        if (plantDateExact) params.set('plantDateExact', 'true');
+        if (plantDateTo && !plantDateExact) params.set('plantDateTo', plantDateTo);
+        if (plantDateFrom && plantDateExact) params.set('plantDateExact', 'true');
 
         if (handoverDateFrom) params.set('handoverDateFrom', handoverDateFrom);
-        if (handoverDateTo) params.set('handoverDateTo', handoverDateTo);
-        if (handoverDateExact) params.set('handoverDateExact', 'true');
+        if (handoverDateTo && !handoverDateExact) params.set('handoverDateTo', handoverDateTo);
+        if (handoverDateFrom && handoverDateExact) params.set('handoverDateExact', 'true');
 
         if (nextDateFrom) params.set('nextDateFrom', nextDateFrom);
-        if (nextDateTo) params.set('nextDateTo', nextDateTo);
-        if (nextDateExact) params.set('nextDateExact', 'true');
+        if (nextDateTo && !nextDateExact) params.set('nextDateTo', nextDateTo);
+        if (nextDateFrom && nextDateExact) params.set('nextDateExact', 'true');
 
         // Store current filters globally for pagination
         window.currentCaseFilters = new URLSearchParams(params);
@@ -707,20 +716,22 @@ if (!empty($params)) {
         const casesContent = document.getElementById('cases-content');
         if (casesContent) {
             // We're in the dashboard - load via AJAX
-            casesContent.innerHTML = '<h2><i class="fas fa-folder-open"></i> All Cases</h2><p>Filtering cases...</p>';
+            // Show a subtle loading indicator without clearing all content
+            const existingTable = casesContent.querySelector('.table-container');
+            if (existingTable) {
+                existingTable.style.opacity = '0.5';
+                existingTable.style.pointerEvents = 'none';
+            }
 
             fetch('content/allCases/all_cases.php?' + params.toString())
                 .then(response => response.text())
                 .then(data => {
                     casesContent.innerHTML = data;
-                    casesContent.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
+                    // No scroll on filter - only on pagination
                 })
                 .catch(error => {
                     console.error('Error filtering cases:', error);
-                    casesContent.innerHTML = '<h2><i class="fas fa-folder-open"></i> All Cases</h2><p>Error loading filtered cases. Please try again.</p>';
+                    casesContent.innerHTML = '<h2><i class="fas fa-folder-open"></i> All Cases</h2><p style="color: red;">Error loading filtered cases. Please try again.</p>';
                 });
         } else {
             // Standalone page - use normal navigation
@@ -784,42 +795,42 @@ if (!empty($params)) {
         // Clear Previous Date filters
         document.getElementById('prevDateFrom').value = '';
         document.getElementById('prevDateTo').value = '';
-        document.getElementById('prevDateTo').disabled = false;
-        document.getElementById('prevDateTo').style.opacity = '1';
-        document.getElementById('prevDateTo').style.cursor = 'text';
-        document.getElementById('prevDateExact').checked = false;
+        document.getElementById('prevDateTo').disabled = true;
+        document.getElementById('prevDateTo').style.opacity = '0.5';
+        document.getElementById('prevDateTo').style.cursor = 'not-allowed';
+        document.getElementById('prevDateExact').checked = true;
 
         // Clear B Report Date filters
         document.getElementById('bReportDateFrom').value = '';
         document.getElementById('bReportDateTo').value = '';
-        document.getElementById('bReportDateTo').disabled = false;
-        document.getElementById('bReportDateTo').style.opacity = '1';
-        document.getElementById('bReportDateTo').style.cursor = 'text';
-        document.getElementById('bReportDateExact').checked = false;
+        document.getElementById('bReportDateTo').disabled = true;
+        document.getElementById('bReportDateTo').style.opacity = '0.5';
+        document.getElementById('bReportDateTo').style.cursor = 'not-allowed';
+        document.getElementById('bReportDateExact').checked = true;
 
         // Clear Plant Date filters
         document.getElementById('plantDateFrom').value = '';
         document.getElementById('plantDateTo').value = '';
-        document.getElementById('plantDateTo').disabled = false;
-        document.getElementById('plantDateTo').style.opacity = '1';
-        document.getElementById('plantDateTo').style.cursor = 'text';
-        document.getElementById('plantDateExact').checked = false;
+        document.getElementById('plantDateTo').disabled = true;
+        document.getElementById('plantDateTo').style.opacity = '0.5';
+        document.getElementById('plantDateTo').style.cursor = 'not-allowed';
+        document.getElementById('plantDateExact').checked = true;
 
         // Clear Handover Date filters
         document.getElementById('handoverDateFrom').value = '';
         document.getElementById('handoverDateTo').value = '';
-        document.getElementById('handoverDateTo').disabled = false;
-        document.getElementById('handoverDateTo').style.opacity = '1';
-        document.getElementById('handoverDateTo').style.cursor = 'text';
-        document.getElementById('handoverDateExact').checked = false;
+        document.getElementById('handoverDateTo').disabled = true;
+        document.getElementById('handoverDateTo').style.opacity = '0.5';
+        document.getElementById('handoverDateTo').style.cursor = 'not-allowed';
+        document.getElementById('handoverDateExact').checked = true;
 
         // Clear Next Date filters
         document.getElementById('nextDateFrom').value = '';
         document.getElementById('nextDateTo').value = '';
-        document.getElementById('nextDateTo').disabled = false;
-        document.getElementById('nextDateTo').style.opacity = '1';
-        document.getElementById('nextDateTo').style.cursor = 'text';
-        document.getElementById('nextDateExact').checked = false;
+        document.getElementById('nextDateTo').disabled = true;
+        document.getElementById('nextDateTo').style.opacity = '0.5';
+        document.getElementById('nextDateTo').style.cursor = 'not-allowed';
+        document.getElementById('nextDateExact').checked = true;
 
         window.filterCases();
     }
@@ -1056,6 +1067,33 @@ if (!empty($params)) {
         loadNextDateHistory(caseData.id);
     }
 
+    function loadMostRecentNextDateNotes(caseId) {
+        fetch('content/allCases/get_next_date_history.php?case_id=' + caseId)
+            .then(response => response.json())
+            .then(data => {
+                const notesField = document.getElementById('edit_next_date_notes');
+                const notesLabel = notesField ? notesField.previousElementSibling : null;
+                
+                if (data.success && data.history.length > 0) {
+                    // Get the most recent entry
+                    const latestEntry = data.history[0];
+                    if (latestEntry.notes) {
+                        // Show current notes as placeholder
+                        notesField.placeholder = 'Current notes: ' + latestEntry.notes.substring(0, 100) + (latestEntry.notes.length > 100 ? '...' : '');
+                        // Update label to clarify
+                        if (notesLabel && notesLabel.tagName === 'LABEL') {
+                            notesLabel.innerHTML = 'Next Date Notes (Optional) <small style="color: #666; font-weight: normal;">- Add new notes if changing the date</small>';
+                        }
+                    }
+                } else {
+                    notesField.placeholder = 'Add notes about this next date...';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading notes:', error);
+            });
+    }
+
     function loadNextDateHistory(caseId) {
         const historySection = document.getElementById('nextDateHistory');
 
@@ -1215,7 +1253,8 @@ if (!empty($params)) {
         document.getElementById('edit_date_produce_plant').value = caseData.date_produce_plant || '';
         document.getElementById('edit_date_handover_court').value = caseData.date_handover_court || '';
         document.getElementById('edit_next_date').value = caseData.next_date || '';
-        document.getElementById('edit_next_date_notes').value = '';
+        // Load the most recent next_date_notes from history
+        loadMostRecentNextDateNotes(caseData.id);
         document.getElementById('edit_opens').value = caseData.opens || '';
         document.getElementById('edit_attorney_general_advice').value = caseData.attorney_general_advice || '';
         document.getElementById('edit_receival_memorandum').value = caseData.receival_memorandum || '';

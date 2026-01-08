@@ -153,7 +153,8 @@ try {
     $stmt->close();
 
     // If next_date was changed and is not null, add to history
-    if ($next_date !== null && $next_date !== $old_next_date) {
+    // Use loose comparison to handle null cases properly
+    if ($next_date !== null && $next_date != $old_next_date) {
         $history_sql = "INSERT INTO next_date_history (case_id, next_date, notes, created_by) VALUES (?, ?, ?, ?)";
         $history_stmt = $conn->prepare($history_sql);
         $history_stmt->bind_param("issi", $case_id, $next_date, $next_date_notes, $user_id);
