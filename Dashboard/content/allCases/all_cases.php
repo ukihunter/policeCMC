@@ -411,6 +411,9 @@ if (!empty($params)) {
                                 <button class="btn-print" onclick="printCase(<?php echo $case['id']; ?>)" title="Print Case">
                                     <i class="fas fa-print"></i>
                                 </button>
+                                <button class="btn-delete" onclick="deleteCase(<?php echo $case['id']; ?>, '<?php echo htmlspecialchars($case['case_number'], ENT_QUOTES); ?>')" title="Delete Case">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -475,6 +478,39 @@ if (!empty($params)) {
 
 <?php include 'edit_case_modal.php'; ?>
 <?php include 'print_case_modal.php'; ?>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteCaseModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+            <h2 style="color: white;"><i class="fas fa-exclamation-triangle"></i> Confirm Delete</h2>
+            <span class="close-modal" onclick="closeDeleteModal()" style="color: white;">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div style="text-align: center; padding: 20px 10px;">
+                <div style="font-size: 64px; color: #dc3545; margin-bottom: 20px;">
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+                <h3 style="color: #0a1628; margin-bottom: 15px; font-size: 20px;">
+                    Delete Case: <span id="deleteCaseNumber" style="color: #dc3545;"></span>
+                </h3>
+                <p style="color: #666; font-size: 15px; line-height: 1.6; margin-bottom: 25px;">
+                    Are you sure you want to permanently delete this case?
+                    <br><br>
+                    <strong style="color: #dc3545;">⚠ Warning:</strong> This action cannot be undone and will permanently delete all case data including history records.
+                </p>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button class="btn-cancel-delete" onclick="closeDeleteModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button class="btn-confirm-delete" onclick="confirmDelete()">
+                        <i class="fas fa-trash-alt"></i> Yes, Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
     // Global variables for print modal
@@ -1375,6 +1411,77 @@ if (!empty($params)) {
             }
         });
         console.log('Selected court essentials');
+    }
+
+    window.deleteCase = function(caseId, caseNumber) {
+        // Store the case ID and number for confirmation
+        window.pendingDeleteCaseId = caseId;
+        window.pendingDeleteCaseNumber = caseNumber;
+
+        // Update modal content
+        document.getElementById('deleteCaseNumber').textContent = caseNumber;
+
+        // Show delete confirmation modal
+        document.getElementById('deleteCaseModal').style.display = 'block';
+    }
+
+    window.closeDeleteModal = function() {
+        document.getElementById('deleteCaseModal').style.display = 'none';
+        window.pendingDeleteCaseId = null;
+        window.pendingDeleteCaseNumber = null;
+    }
+
+    window.confirmDelete = function() {
+        const caseId = window.pendingDeleteCaseId;
+        const caseNumber = window.pendingDeleteCaseNumber;
+
+        if (!caseId) {
+            return;
+        }
+
+        // Close the modal
+        closeDeleteModal();
+
+        // Send delete request
+        fetch('content/allCases/delete_case.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'id=' + caseId
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Auto-refresh immediately after successful deletion
+                    if (window.currentCaseFilters) {
+                        // If we have filters, reload with filters
+                        const params = new URLSearchParams(window.currentCaseFilters);
+                        const casesContent = document.getElementById('cases-content');
+                        if (casesContent) {
+                            fetch('content/allCases/all_cases.php?' + params.toString())
+                                .then(response => response.text())
+                                .then(data => {
+                                    casesContent.innerHTML = data;
+                                })
+                                .catch(err => {
+                                    console.error('Error reloading:', err);
+                                    window.location.reload();
+                                });
+                        } else {
+                            window.location.reload();
+                        }
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    alert('Error deleting case: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the case. Please try again.');
+            });
     }
 
     window.generatePrint = function() {
@@ -2344,8 +2451,14 @@ if (!empty($params)) {
     if (!window.printModalClickHandlerAdded) {
         window.addEventListener('click', function(event) {
             const printModal = document.getElementById('printCaseModal');
+            const deleteModal = document.getElementById('deleteCaseModal');
+
             if (event.target == printModal) {
                 window.closePrintModal();
+            }
+
+            if (event.target == deleteModal) {
+                window.closeDeleteModal();
             }
         });
         window.printModalClickHandlerAdded = true;

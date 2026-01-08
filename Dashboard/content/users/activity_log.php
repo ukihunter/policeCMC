@@ -98,6 +98,16 @@ if ($current_user['role'] !== 'admin') {
                     <p>Cases Printed</p>
                 </div>
             </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #ffebee;">
+                    <i class="fas fa-trash-alt" style="color: #f44336;"></i>
+                </div>
+                <div class="stat-info">
+                    <h4 id="casesDeleted">0</h4>
+                    <p>Cases Deleted</p>
+                </div>
+            </div>
         </div>
 
         <!-- Activity Timeline -->
@@ -642,6 +652,7 @@ if ($current_user['role'] !== 'admin') {
         document.getElementById('casesAdded').textContent = stats.case_added || 0;
         document.getElementById('casesEdited').textContent = stats.case_edited || 0;
         document.getElementById('casesPrinted').textContent = stats.case_printed || 0;
+        document.getElementById('casesDeleted').textContent = stats.case_deleted || 0;
     }
 
     async function loadUserFilter() {

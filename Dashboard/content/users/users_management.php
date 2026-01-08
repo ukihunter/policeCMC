@@ -28,6 +28,9 @@ $is_admin = ($current_user['role'] === 'admin');
             <button class="users-tab-btn" onclick="switchUserTab('manage-users')">
                 <i class="fas fa-users-cog"></i> Manage Users
             </button>
+            <button class="users-tab-btn" onclick="switchUserTab('backup')">
+                <i class="fas fa-database"></i> Backup
+            </button>
             <button class="users-tab-btn" onclick="switchUserTab('activity-log')">
                 <i class="fas fa-history"></i> Activity Log
             </button>
@@ -117,6 +120,55 @@ $is_admin = ($current_user['role'] === 'admin');
         </div>
     <?php endif; ?>
 </div>
+
+<!-- Backup Tab (Admin Only) -->
+<?php if ($is_admin): ?>
+    <div id="backup-tab" class="users-tab-content">
+        <div class="section-card">
+            <h3><i class="fas fa-database"></i> Database Backup</h3>
+            <p class="section-description">Create backups of your database to OneDrive or Desktop</p>
+
+            <div class="backup-options">
+                <div class="backup-option-card">
+                    <div class="backup-icon" style="background: linear-gradient(135deg, #0078d4 0%, #005a9e 100%);">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <div class="backup-info">
+                        <h4>Quick Backup</h4>
+                        <p>Download database backup file to your computer</p>
+                        <button class="btn-backup-onedrive" onclick="backupToOneDrive()">
+                            <i class="fas fa-download"></i> Download Backup
+                        </button>
+                    </div>
+                </div>
+
+                <div class="backup-option-card">
+                    <div class="backup-icon" style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);">
+                        <i class="fas fa-hdd"></i>
+                    </div>
+                    <div class="backup-info">
+                        <h4>Alternative Backup</h4>
+                        <p>Download database backup with alternate method</p>
+                        <button class="btn-backup-local" onclick="backupToDesktop()">
+                            <i class="fas fa-download"></i> Download Backup
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="backup-info-section">
+                <h4><i class="fas fa-info-circle"></i> Backup Information</h4>
+                <ul class="backup-tips">
+                    <li><i class="fas fa-check-circle"></i> Backups include all cases, users, and system settings</li>
+                    <li><i class="fas fa-check-circle"></i> Backup files are timestamped for easy identification</li>
+                    <li><i class="fas fa-check-circle"></i> Files are automatically downloaded to your Downloads folder</li>
+                    <li><i class="fas fa-check-circle"></i> You can then save backups to OneDrive, Desktop, or any location</li>
+                    <li><i class="fas fa-check-circle"></i> Regular backups are recommended for data safety</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
 
 <!-- Activity Log Tab (Admin Only) -->
 <?php if ($is_admin): ?>
@@ -416,14 +468,17 @@ $is_admin = ($current_user['role'] === 'admin');
             document.querySelectorAll('.users-tab-btn')[1].classList.add('active');
             document.getElementById('manage-users-tab').classList.add('active');
             loadUsers(); // Load users when tab is opened
-        } else if (tabName === 'activity-log') {
+        } else if (tabName === 'backup') {
             document.querySelectorAll('.users-tab-btn')[2].classList.add('active');
+            document.getElementById('backup-tab').classList.add('active');
+        } else if (tabName === 'activity-log') {
+            document.querySelectorAll('.users-tab-btn')[3].classList.add('active');
             document.getElementById('activity-log-tab').classList.add('active');
             if (typeof loadActivities === 'function') {
                 loadActivities(); // Load activities when tab is opened
             }
         } else if (tabName === 'system-details') {
-            document.querySelectorAll('.users-tab-btn')[3].classList.add('active');
+            document.querySelectorAll('.users-tab-btn')[4].classList.add('active');
             document.getElementById('system-details-tab').classList.add('active');
             loadSystemSettings(); // Load system settings when tab is opened
         }
@@ -473,6 +528,108 @@ $is_admin = ($current_user['role'] === 'admin');
     });
 
     <?php if ($is_admin): ?>
+        // Backup Database to OneDrive
+        async function backupToOneDrive() {
+            const button = event.target.closest('button');
+            const originalHTML = button.innerHTML;
+            
+            // Disable button and show loading state
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Backing up...';
+            
+            try {
+                const response = await fetch('content/users/backup_database.php', {
+                    method: 'POST',
+                    credentials: 'same-origin'
+                });
+                const data = await response.json();
+                
+                console.log('OneDrive Backup Response:', data);
+                
+                if (data.success) {
+                    // Auto-download the backup file
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = data.download_url;
+                    downloadLink.download = data.filename;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                    
+                    showNotification(
+                        `✅ Backup Successful!<br><br>` +
+                        `<strong>File:</strong> ${data.filename}<br>` +
+                        `<strong>Size:</strong> ${data.size}<br>` +
+                        `<strong>Download started automatically</strong>`,
+                        'success'
+                    );
+                } else {
+                    console.error('Backup failed:', data);
+                    showNotification(
+                        '❌ Backup Failed<br><br>' + (data.message || 'Unknown error'),
+                        'error'
+                    );
+                }
+            } catch (error) {
+                console.error('Backup error:', error);
+                showNotification('❌ Error creating backup: ' + error.message, 'error');
+            } finally {
+                // Re-enable button
+                button.disabled = false;
+                button.innerHTML = originalHTML;
+            }
+        }
+
+        // Backup Database to Desktop
+        async function backupToDesktop() {
+            const button = event.target.closest('button');
+            const originalHTML = button.innerHTML;
+            
+            // Disable button and show loading state
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Backing up...';
+            
+            try {
+                const response = await fetch('content/users/backup_desktop.php', {
+                    method: 'POST',
+                    credentials: 'same-origin'
+                });
+                const data = await response.json();
+                
+                console.log('Desktop Backup Response:', data);
+                
+                if (data.success) {
+                    // Auto-download the backup file
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = data.download_url;
+                    downloadLink.download = data.filename;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                    
+                    showNotification(
+                        `✅ Backup Successful!<br><br>` +
+                        `<strong>File:</strong> ${data.filename}<br>` +
+                        `<strong>Size:</strong> ${data.size}<br>` +
+                        `<strong>Download started automatically</strong>`,
+                        'success'
+                    );
+                } else {
+                    console.error('Backup failed:', data);
+                    showNotification(
+                        '❌ Backup Failed<br><br>' + (data.message || 'Unknown error'),
+                        'error'
+                    );
+                }
+            } catch (error) {
+                console.error('Backup error:', error);
+                showNotification('❌ Error creating backup: ' + error.message, 'error');
+            } finally {
+                // Re-enable button
+                button.disabled = false;
+                button.innerHTML = originalHTML;
+            }
+        }
+
         // Load Users (Admin only)
         async function loadUsers() {
             try {
