@@ -532,20 +532,20 @@ $is_admin = ($current_user['role'] === 'admin');
         async function backupToOneDrive() {
             const button = event.target.closest('button');
             const originalHTML = button.innerHTML;
-            
+
             // Disable button and show loading state
             button.disabled = true;
             button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Backing up...';
-            
+
             try {
                 const response = await fetch('content/users/backup_database.php', {
                     method: 'POST',
                     credentials: 'same-origin'
                 });
                 const data = await response.json();
-                
+
                 console.log('OneDrive Backup Response:', data);
-                
+
                 if (data.success) {
                     // Auto-download the backup file
                     const downloadLink = document.createElement('a');
@@ -554,7 +554,7 @@ $is_admin = ($current_user['role'] === 'admin');
                     document.body.appendChild(downloadLink);
                     downloadLink.click();
                     document.body.removeChild(downloadLink);
-                    
+
                     showNotification(
                         `✅ Backup Successful!<br><br>` +
                         `<strong>File:</strong> ${data.filename}<br>` +
@@ -583,20 +583,20 @@ $is_admin = ($current_user['role'] === 'admin');
         async function backupToDesktop() {
             const button = event.target.closest('button');
             const originalHTML = button.innerHTML;
-            
+
             // Disable button and show loading state
             button.disabled = true;
             button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Backing up...';
-            
+
             try {
                 const response = await fetch('content/users/backup_desktop.php', {
                     method: 'POST',
                     credentials: 'same-origin'
                 });
                 const data = await response.json();
-                
+
                 console.log('Desktop Backup Response:', data);
-                
+
                 if (data.success) {
                     // Auto-download the backup file
                     const downloadLink = document.createElement('a');
@@ -605,7 +605,7 @@ $is_admin = ($current_user['role'] === 'admin');
                     document.body.appendChild(downloadLink);
                     downloadLink.click();
                     document.body.removeChild(downloadLink);
-                    
+
                     showNotification(
                         `✅ Backup Successful!<br><br>` +
                         `<strong>File:</strong> ${data.filename}<br>` +
