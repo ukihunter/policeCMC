@@ -1,0 +1,153 @@
+========================================
+WINDOWS TASK SCHEDULER SETUP GUIDE
+Police CMS - Automatic Backup Every Day
+========================================
+
+STEP 1: OPEN TASK SCHEDULER
+----------------------------
+1. Press Windows Key + R
+2. Type: taskschd.msc
+3. Press Enter
+
+
+STEP 2: CREATE NEW TASK
+----------------------------
+1. In the right panel, click "Create Basic Task..."
+2. Name: Police CMS Auto Backup
+3. Description: Automatically backs up database every day to OneDrive
+4. Click "Next"
+
+
+STEP 3: SET TRIGGER (WHEN TO RUN)
+----------------------------
+1. Select: "Daily"
+2. Click "Next"
+3. Start: Select today's date
+4. Time: 02:00:00 AM (or any time you prefer)
+5. Recur every: 1 days
+   (Note: The script will check if 1 day passed, so we run daily)
+6. Click "Next"
+
+
+STEP 4: SET ACTION (WHAT TO RUN)
+----------------------------
+1. Select: "Start a program"
+2. Click "Next"
+3. Program/script: c:\xampp\htdocs\police\run_auto_backup.bat
+4. Leave "Add arguments" and "Start in" empty
+5. Click "Next"
+
+
+STEP 5: FINISH
+----------------------------
+1. Review the summary
+2. Check "Open the Properties dialog for this task when I click Finish"
+3. Click "Finish"
+
+
+STEP 6: ADVANCED SETTINGS (OPTIONAL BUT RECOMMENDED)
+----------------------------
+The Properties dialog will open automatically:
+
+GENERAL TAB:
+- Check: "Run whether user is logged on or not"
+- Check: "Run with highest privileges"
+- Configure for: Windows 10
+
+CONDITIONS TAB:
+- UNCHECK: "Start the task only if the computer is on AC power"
+- UNCHECK: "Stop if the computer switches to battery power"
+- CHECK: "Wake the computer to run this task"
+
+SETTINGS TAB:
+- CHECK: "Allow task to be run on demand"
+- CHECK: "Run task as soon as possible after a scheduled start is missed"
+- CHECK: "If the task fails, restart every: 10 minutes"
+- Attempt to restart up to: 3 times
+
+Click "OK" to save
+
+
+STEP 7: TEST THE TASK
+----------------------------
+1. In Task Scheduler, find "Police CMS Auto Backup" in the task list
+2. Right-click it and select "Run"
+3. Check if backup was created in OneDrive folder
+
+
+STEP 8: VERIFY BACKUP LOCATION
+----------------------------
+1. Press Windows Key + R
+2. Type: %OneDrive%\Police_CMS_Backups
+3. Press Enter
+4. You should see backup files named: police_cms_auto_backup_YYYY-MM-DD_HH-MM-SS.sql
+
+
+========================================
+COPY THIS SETUP TO ANOTHER PC
+========================================
+
+On the NEW PC:
+1. Install XAMPP (same location: C:\xampp\)
+2. Copy entire "police" folder to: c:\xampp\htdocs\
+3. Import the database using phpMyAdmin
+4. Sign in to OneDrive on the new PC
+5. Follow STEP 1-6 above to create the Task Scheduler task
+6. Done! Backups will automatically sync between PCs via OneDrive
+
+
+========================================
+TROUBLESHOOTING
+========================================
+
+BACKUP NOT CREATED:
+- Check if OneDrive is signed in
+- Run: c:\xampp\htdocs\police\run_auto_backup.bat manually
+- Check error messages
+
+CAN'T FIND BACKUP FILES:
+- Open File Explorer
+- Type in address bar: %OneDrive%\Police_CMS_Backups
+- If folder is empty, backups may be in: c:\xampp\htdocs\police\db\backups
+
+TASK NOT RUNNING:
+- Open Task Scheduler
+- Check "Task Scheduler Library" for your task
+- Right-click and select "Run" to test
+- Check "History" tab for error details
+
+ONEDRIVE NOT SYNCING:
+- Check OneDrive icon in system tray (bottom-right)
+- Make sure OneDrive is not paused
+- Check if you have enough OneDrive storage space
+
+
+========================================
+QUICK COMMANDS TO CHECK
+========================================
+
+Check OneDrive backup folder:
+dir "%OneDrive%\Police_CMS_Backups"
+
+Check local backup folder:
+dir "c:\xampp\htdocs\police\db\backups"
+
+Run backup manually:
+c:\xampp\htdocs\police\run_auto_backup.bat
+
+Check when last backup was made:
+Go to phpMyAdmin > police_cms database > system_settings table
+Look for: last_auto_backup_date
+
+
+========================================
+NOTES
+========================================
+
+- Backups happen automatically every day
+- Only the last 10 automatic backups are kept
+- Manual backups (from admin panel) are kept separately
+- Backups are synced to OneDrive cloud automatically
+- Works on any PC with OneDrive installed
+- If no OneDrive, backups save locally
+- Database migration already applied - no need to run again

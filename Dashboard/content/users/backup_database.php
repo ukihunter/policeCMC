@@ -30,10 +30,15 @@ try {
     $db_pass = '';
     $db_name = 'police_cms';
 
-    // Save to project's db/backups folder (web-accessible for download)
-    // This works on any PC regardless of username or Apache service account
-    $project_root = dirname(dirname(dirname(dirname(__FILE__))));
-    $backup_folder = $project_root . '\\db\\backups';
+    // Save to OneDrive if available, otherwise to project's db/backups folder
+    // This ensures backups are synced to cloud storage
+    $onedrive_path = getenv('OneDrive');
+    if ($onedrive_path && is_dir($onedrive_path)) {
+        $backup_folder = $onedrive_path . '\\Police_CMS_Backups';
+    } else {
+        $project_root = dirname(dirname(dirname(dirname(__FILE__))));
+        $backup_folder = $project_root . '\\db\\backups';
+    }
 
     // Create backup folder if it doesn't exist
     if (!is_dir($backup_folder)) {

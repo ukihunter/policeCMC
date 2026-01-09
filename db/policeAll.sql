@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `activity_logs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) DEFAULT NULL,
   `user_name` varchar(100) DEFAULT NULL,
-  `activity_type` enum('case_added','case_edited','case_printed','case_deleted','user_added','user_edited','user_deleted','password_changed','login','logout') NOT NULL,
+  `activity_type` enum('case_added','case_edited','case_printed','case_deleted','user_added','user_edited','user_deleted','password_changed','login','logout','database_backup') NOT NULL,
   `case_id` int(11) DEFAULT NULL,
   `case_number` varchar(100) DEFAULT NULL,
   `description` text DEFAULT NULL,

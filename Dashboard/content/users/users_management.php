@@ -125,7 +125,7 @@ $is_admin = ($current_user['role'] === 'admin');
 <?php if ($is_admin): ?>
     <div id="backup-tab" class="users-tab-content">
         <div class="section-card">
-            <h3><i class="fas fa-database"></i> Database Backup</h3>
+            <!-- <h3><i class="fas fa-database"></i> Database Backup</h3>
             <p class="section-description">Create backups of your database to OneDrive or Desktop</p>
 
             <div class="backup-options">
@@ -140,33 +140,33 @@ $is_admin = ($current_user['role'] === 'admin');
                             <i class="fas fa-download"></i> Download Backup
                         </button>
                     </div>
-                </div>
+                </div>  -->
 
-                <div class="backup-option-card">
-                    <div class="backup-icon" style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);">
-                        <i class="fas fa-hdd"></i>
-                    </div>
-                    <div class="backup-info">
-                        <h4>Alternative Backup</h4>
-                        <p>Download database backup with alternate method</p>
-                        <button class="btn-backup-local" onclick="backupToDesktop()">
-                            <i class="fas fa-download"></i> Download Backup
-                        </button>
-                    </div>
+            <div class="backup-option-card">
+                <div class="backup-icon" style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);">
+                    <i class="fas fa-hdd"></i>
                 </div>
-            </div>
-
-            <div class="backup-info-section">
-                <h4><i class="fas fa-info-circle"></i> Backup Information</h4>
-                <ul class="backup-tips">
-                    <li><i class="fas fa-check-circle"></i> Backups include all cases, users, and system settings</li>
-                    <li><i class="fas fa-check-circle"></i> Backup files are timestamped for easy identification</li>
-                    <li><i class="fas fa-check-circle"></i> Files are automatically downloaded to your Downloads folder</li>
-                    <li><i class="fas fa-check-circle"></i> You can then save backups to OneDrive, Desktop, or any location</li>
-                    <li><i class="fas fa-check-circle"></i> Regular backups are recommended for data safety</li>
-                </ul>
+                <div class="backup-info">
+                    <h4>Alternative Backup</h4>
+                    <p>Download database backup with alternate method</p>
+                    <button class="btn-backup-local" onclick="backupToDesktop()">
+                        <i class="fas fa-download"></i> Download Backup
+                    </button>
+                </div>
             </div>
         </div>
+
+        <div class="backup-info-section">
+            <h4><i class="fas fa-info-circle"></i> Backup Information</h4>
+            <ul class="backup-tips">
+                <li><i class="fas fa-check-circle"></i> Backups include all cases, users, and system settings</li>
+                <li><i class="fas fa-check-circle"></i> Backup files are timestamped for easy identification</li>
+                <li><i class="fas fa-check-circle"></i> Files are automatically downloaded to your Downloads folder</li>
+                <li><i class="fas fa-check-circle"></i> You can then save backups to OneDrive, Desktop, or any location</li>
+                <li><i class="fas fa-check-circle"></i> Regular backups are recommended for data safety</li>
+            </ul>
+        </div>
+    </div>
     </div>
 <?php endif; ?>
 
